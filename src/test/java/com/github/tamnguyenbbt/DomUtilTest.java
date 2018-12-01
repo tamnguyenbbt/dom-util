@@ -1,9 +1,10 @@
-package dnn.tam.util.dom;
+package com.github.tamnguyenbbt;
 
-import dnn.tam.util.exception.AmbiguousAnchorElementsException;
-import dnn.tam.util.exception.AmbiguousFoundWebElementsException;
-import dnn.tam.util.exception.AmbiguousFoundXPathsException;
-import dnn.tam.util.exception.NoAnchorElementFoundException;
+import com.github.tamnguyenbbt.dom.DomUtil;
+import com.github.tamnguyenbbt.exception.AmbiguousAnchorElementsException;
+import com.github.tamnguyenbbt.exception.AmbiguousFoundWebElementsException;
+import com.github.tamnguyenbbt.exception.AmbiguousFoundXPathsException;
+import com.github.tamnguyenbbt.exception.NoAnchorElementFoundException;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

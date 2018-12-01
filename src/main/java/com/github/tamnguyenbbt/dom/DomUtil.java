@@ -1,6 +1,6 @@
-package dnn.tam.util.dom;
+package com.github.tamnguyenbbt.dom;
 
-import dnn.tam.util.exception.*;
+import com.github.tamnguyenbbt.exception.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

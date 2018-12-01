@@ -1,4 +1,4 @@
-package dnn.tam.util.dom;
+package com.github.tamnguyenbbt.dom;
 
 import java.util.Map;
 

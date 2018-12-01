@@ -1,4 +1,4 @@
-package dnn.tam.util.exception;
+package com.github.tamnguyenbbt.exception;
 
 public class AmbiguousFoundWebElementsException extends Exception
 {

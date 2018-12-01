@@ -1,4 +1,4 @@
-package dnn.tam.util.dom;
+package com.github.tamnguyenbbt.dom;
 
 import org.jsoup.nodes.Element;
 import java.util.ArrayList;
