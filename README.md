@@ -8,7 +8,9 @@ This utility is to help reduce the effort for this process.
 ## How to use:
  - Locate anchor web element on a web page under test such as a label closest to the web element to search
  - Get the information about the anchor web element: tag name, and own text
-    i.e. ```<div jsname="YRMmle" class="AxOyFc snByac" aria-hidden="true">First name</div> --> tag: div, and text: First name```
+    i.e. ```xml
+    <div jsname="YRMmle" class="AxOyFc snByac" aria-hidden="true">First name</div> --> tag: div, and text: First name
+    ```
  - Get the tag name or any css selector of the element to search, i.e. 'input'
  - Pass them to a method of DomUtil
 
@@ -43,10 +45,12 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Maven Repository
 
-```<dependency>
+```xml
+<dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
   <version>1.0.0</version>
-</dependency>```
+</dependency>
+```
 
 https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.0/jar
