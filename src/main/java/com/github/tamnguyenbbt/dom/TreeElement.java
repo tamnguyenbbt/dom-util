@@ -4,7 +4,7 @@ import org.jsoup.nodes.Element;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TreeElement
+final class TreeElement
 {
     protected Element element;
     protected List<Integer> position;

@@ -1,10 +1,8 @@
 package com.github.tamnguyenbbt;
 
+import com.github.tamnguyenbbt.dom.AnchorElementInfo;
 import com.github.tamnguyenbbt.dom.DomUtil;
-import com.github.tamnguyenbbt.exception.AmbiguousAnchorElementsException;
-import com.github.tamnguyenbbt.exception.AmbiguousFoundWebElementsException;
-import com.github.tamnguyenbbt.exception.AmbiguousFoundXPathsException;
-import com.github.tamnguyenbbt.exception.NoAnchorElementFoundException;
+import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -95,6 +93,29 @@ public class DomUtilTest
     }
 
     @Test
+    public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    {
+        //Arrange
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
+        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
+        Document document = DomUtil.htmlFileToDocument(resourcePath);
+
+        //Act
+        AnchorElementInfo anchorElementInfo = new AnchorElementInfo();
+        anchorElementInfo.ownText = "userna";
+        anchorElementInfo.tagName = "div";
+        anchorElementInfo.indexIfMultipleFound = 0;
+        anchorElementInfo.whereIgnoreCaseForOwnText = true;
+        anchorElementInfo.whereOwnTextContainingPattern = true;
+        String xpath1 = DomUtil.getXPaths(document, anchorElementInfo, "input").get(0);
+        String xpath2 = DomUtil.getXPaths(document, "Username", "input").get(0);
+
+        //Assert
+        Assert.assertEquals(expectedXPath, xpath1);
+        Assert.assertEquals(expectedXPath, xpath2);
+    }
+
+    @Test
     public void getClosestElementsFromAnchorElement() throws IOException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
     {
         //Arrange
@@ -130,6 +151,21 @@ public class DomUtilTest
     }
 
     @Test
+    public void getXPath_self() throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException, IOException
+    {
+        //Arrange
+        String expectedXPath = "//button[contains(text(),'Next')]";
+        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
+        Document document = DomUtil.htmlFileToDocument(resourcePath);
+
+        //Act
+        String xpath = DomUtil.getXPath(document, "button", "Next", "button");
+
+        //Assert
+        Assert.assertEquals(expectedXPath, xpath);
+    }
+
+    @Test
     public void sampleSeleniumTest_using_getXpath()
             throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException, InterruptedException
     {
@@ -157,13 +193,13 @@ public class DomUtilTest
         driver.get(url);
         String uuid = UUID.randomUUID().toString().substring(0, 20);
 
-        //Arrange
+        //Act
         DomUtil.findElement(driver, "First name", "input").sendKeys(uuid);
         DomUtil.findElement(driver, "Last name", "input").sendKeys(uuid);
         DomUtil.findElement(driver, "Username", "input").sendKeys(uuid);
         DomUtil.findElement(driver, "Password", "input").sendKeys(uuid);
         DomUtil.findElement(driver, "Confirm", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Next", "button").click();
+        DomUtil.findElement(driver, "Next", "span").click();
 
         try
         {
