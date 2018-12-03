@@ -54,7 +54,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
