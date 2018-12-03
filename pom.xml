@@ -6,7 +6,7 @@
 
     <groupId>com.github.tamnguyenbbt</groupId>
     <artifactId>dom-util</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <name>dom utility</name>
     <description>Find jsoup elements, relative xpath queries, and Selenium web elements for web service and Selenium-based Web UI testing</description>
