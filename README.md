@@ -41,6 +41,13 @@ This utility is to help reduce the effort for this process.
 ## License
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
+## Versions
+
+* Version **1.0.1** released on 12/04/2018 
+  --> add search by AnchorElementInfo class; add support for the case where anchor element is also the search element
+* Version **1.0.0** released on 12/02/2018 
+  --> First version
+
 ## Maven Repository
 
 ```xml
