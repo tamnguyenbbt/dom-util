@@ -43,6 +43,8 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
 
+* Version **1.0.2** released on 12/05/2018
+  --> add support for 2 anchors; add support for possible multiple anchor found; add methods to find full own text first and if not found, find using contains
 * Version **1.0.1** released on 12/04/2018 
   --> add search by AnchorElementInfo class; add support for the case where anchor element is also the search element
 * Version **1.0.0** released on 12/02/2018 
@@ -58,6 +60,6 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 </dependency>
 ```
 
-https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.0/jar
+https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.2/jar
 
 [![View My profile on LinkedIn](https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x33.png)](https://www.linkedin.com/in/tam-nguyen-a0792930/)
