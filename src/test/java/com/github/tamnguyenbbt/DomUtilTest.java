@@ -1,7 +1,7 @@
 package com.github.tamnguyenbbt;
 
-import com.github.tamnguyenbbt.dom.AnchorElementInfo;
 import com.github.tamnguyenbbt.dom.DomUtil;
+import com.github.tamnguyenbbt.dom.ElementInfo;
 import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Document;
@@ -101,7 +101,7 @@ public class DomUtilTest
         Document document = DomUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        AnchorElementInfo anchorElementInfo = new AnchorElementInfo();
+        ElementInfo anchorElementInfo = new ElementInfo();
         anchorElementInfo.ownText = "userna";
         anchorElementInfo.tagName = "div";
         anchorElementInfo.indexIfMultipleFound = 0;
