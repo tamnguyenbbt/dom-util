@@ -62,4 +62,9 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.2/jar
 
+## Future Development Plan
+- Page Object Model class generator (code generator) for test scripts to consume
+- Selenium-based Object-oriented (web element and web page oriented) automation test framework based on dom-util with open report (Report Interface)
+- Comprehensive report plugin for the automation test framework
+
 [![View My profile on LinkedIn](https://static.licdn.com/scds/common/u/img/webpromo/btn_viewmy_160x33.png)](https://www.linkedin.com/in/tam-nguyen-a0792930/)
