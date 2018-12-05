@@ -28,4 +28,12 @@ public class ElementInfo
         this.tagName = tagName;
         this.ownText = ownText;
     }
+    
+    public ElementInfo(String tagName, String ownText, boolean whereOwnTextContainingPattern)
+    {
+        this();
+        this.tagName = tagName;
+        this.ownText = ownText;
+        this.whereOwnTextContainingPattern = whereOwnTextContainingPattern;
+    }
 }
