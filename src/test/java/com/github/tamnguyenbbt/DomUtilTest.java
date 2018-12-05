@@ -194,16 +194,16 @@ public class DomUtilTest
         String uuid = UUID.randomUUID().toString().substring(0, 20);
 
         //Act
-        DomUtil.findElement(driver, "First name", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Last name", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Username", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Password", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Confirm", "input").sendKeys(uuid);
-        DomUtil.findElement(driver, "Next", "span").click();
+        DomUtil.findWebElement(driver, "First name", "input").sendKeys(uuid);
+        DomUtil.findWebElement(driver, "Last name", "input").sendKeys(uuid);
+        DomUtil.findWebElement(driver, "Username", "input").sendKeys(uuid);
+        DomUtil.findWebElement(driver, "Password", "input").sendKeys(uuid);
+        DomUtil.findWebElement(driver, "Confirm", "input").sendKeys(uuid);
+        DomUtil.findWebElement(driver, "Next", "span").click();
 
         try
         {
-            DomUtil.findElement(driver, "invalid anchor", "input").sendKeys(String.format("%s@google.com", uuid));
+            DomUtil.findWebElement(driver, "invalid anchor", "input").sendKeys(String.format("%s@google.com", uuid));
         }
         catch(NoAnchorElementFoundException e)
         {
@@ -225,7 +225,7 @@ public class DomUtilTest
         driver.get(url);
 
         //Act
-        WebElement firstName = DomUtil.findElement(driver, "First name", "label");
+        WebElement firstName = DomUtil.findWebElement(driver, "First name", "label");
         Thread.sleep(2000); //open your eyes to see
         driver.quit();
 
