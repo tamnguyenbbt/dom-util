@@ -407,18 +407,11 @@ public class DomUtil
             String searchCssQuery)
             throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        Document document = DomUtil.getActiveDocument(driver);
-
-        if(document == null)
-        {
-            return null;
-        }
-
         String xpath;
 
         try
         {
-            xpath = getXPath(document, anchorElementInfo, searchCssQuery);
+            xpath = findXpathExactMatch(driver, anchorElementInfo, searchCssQuery);
         }
         catch(AmbiguousFoundXPathsException e)
         {
@@ -426,6 +419,75 @@ public class DomUtil
         }
 
         return xpath == null ? null : driver.findElement(By.xpath(xpath));
+    }
+
+    public static String findXpath(WebDriver driver,
+                                   String anchorElementOwnText,
+                                   String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    {
+        return findXpath(driver, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static String findXpath(WebDriver driver,
+                                   String anchorElementTagName,
+                                   String anchorElementOwnText,
+                                   String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    {
+        String xpath = findXpathExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+
+        if(xpath == null)
+        {
+            try
+            {
+                xpath = findXpathExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText, true), searchCssQuery);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+        }
+
+        return xpath;
+    }
+
+    public static String findXpathExactMatch(
+        WebDriver driver,
+        String anchorElementOwnText,
+        String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    {
+        return findXpathExactMatch(driver, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static String findXpathExactMatch(
+        WebDriver driver,
+        String anchorElementTagName,
+        String anchorElementOwnText,
+        String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    {
+        try
+        {
+            return findXpathExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText),searchCssQuery);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+
+        return null;
+    }
+
+    public static String findXpathExactMatch(
+        WebDriver driver,
+        ElementInfo anchorElementInfo,
+        String searchCssQuery)
+        throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    {
+        Document document = DomUtil.getActiveDocument(driver);
+
+        if(document == null)
+        {
+            return null;
+        }
+
+        return getXPath(document, anchorElementInfo, searchCssQuery);
     }
 
     /**
