@@ -708,7 +708,7 @@ public class DomUtil
             }
         }
 
-        return xpathList;
+        return indexingXpaths(xpathList);
     }
 
     /**
@@ -1235,24 +1235,21 @@ public class DomUtil
         for (int i = 0 ; i < searchElements.size(); i++)
         {
             Element currentSearchElement = searchElements.get(i);
-            MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair = buildTreeContainingBothSearchAndAnchorElements(anchorElement, currentSearchElement);
+            SearchElementRecord searchElementRecord = buildSearchElementRecord(anchorElement, currentSearchElement, i);
 
-            if(matchedElementPositionAndTreePair != null)
+            if(searchElementRecord != null)
             {
-                List<TreeElement> tree = matchedElementPositionAndTreePair.getValue();
-                List<Integer> currentSearchElementPosition = matchedElementPositionAndTreePair.getKey();
-                TreeElement anchor = getFirstMatchedElementInTree(tree, anchorElement);
-
-                if(hasItem(currentSearchElementPosition) && anchor != null && hasItem(anchor.position))
-                {
-                    SearchElementRecord currentFoundElementRecord = new SearchElementRecord();
-                    currentFoundElementRecord.element = currentSearchElement;
-                    currentFoundElementRecord.rootElement = getRootElement(tree).element;
-                    currentFoundElementRecord.index = i;
-                    currentFoundElementRecord.distanceToAnchorElement = currentSearchElementPosition.size() + anchor.position.size() - 2;
-                    foundElementRecords.add(currentFoundElementRecord);
-                }
+                foundElementRecords.add(searchElementRecord);
             }
+        }
+
+        List<SearchElementRecord> foundElementRecordsLinkedToAnchorElement = getFoundElementRecordsLinkedToAnchorElement(foundElementRecords, anchorElement);
+
+        if(hasItem(foundElementRecordsLinkedToAnchorElement))
+        {
+            return foundElementRecordsLinkedToAnchorElement.size() == 1
+                    ? foundElementRecordsLinkedToAnchorElement
+                    : getFoundElementRecordsWithShortestDistanceToAnchorElement(foundElementRecordsLinkedToAnchorElement);
         }
 
         return getFoundElementRecordsWithShortestDistanceToAnchorElement(foundElementRecords);
@@ -1300,6 +1297,28 @@ public class DomUtil
         }
 
         return null;
+    }
+
+    protected static List<SearchElementRecord> getFoundElementRecordsLinkedToAnchorElement(List<SearchElementRecord> foundElementRecords, Element anchorElement)
+    {
+        List<SearchElementRecord> result = new ArrayList<>();
+
+        if (hasItem(foundElementRecords) &&
+                anchorElement != null &&
+                anchorElement.hasAttr("for"))
+        {
+            String linkedElementId = anchorElement.attr("for");
+
+            for (SearchElementRecord item : foundElementRecords)
+            {
+                if(item.element.id().equals(linkedElementId))
+                {
+                    result.add(item);
+                }
+            }
+        }
+
+        return result;
     }
 
     protected static List<SearchElementRecord> getFoundElementRecordsWithShortestDistanceToAnchorElement(List<SearchElementRecord> foundElementRecords)
@@ -1616,6 +1635,30 @@ public class DomUtil
         return findWebObject(driver, document, anchorElements, searchCssQuery, DomUtil::findWebElementFunc);
     }
 
+    private static SearchElementRecord buildSearchElementRecord(Element anchorElement, Element searchElement, int searchElementIndex)
+    {
+        MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair = buildTreeContainingBothSearchAndAnchorElements(anchorElement, searchElement);
+        SearchElementRecord currentFoundElementRecord = null;
+
+        if(matchedElementPositionAndTreePair != null)
+        {
+            List<TreeElement> tree = matchedElementPositionAndTreePair.getValue();
+            List<Integer> currentSearchElementPosition = matchedElementPositionAndTreePair.getKey();
+            TreeElement anchor = getFirstMatchedElementInTree(tree, anchorElement);
+
+            if(hasItem(currentSearchElementPosition) && anchor != null && hasItem(anchor.position))
+            {
+                currentFoundElementRecord = new SearchElementRecord();
+                currentFoundElementRecord.element = searchElement;
+                currentFoundElementRecord.rootElement = getRootElement(tree).element;
+                currentFoundElementRecord.index = searchElementIndex;
+                currentFoundElementRecord.distanceToAnchorElement = currentSearchElementPosition.size() + anchor.position.size() - 2;
+            }
+        }
+
+        return currentFoundElementRecord;
+    }
+
     private static WebElement findWebElementFunc(FindFuncParam params)
     {
         try
@@ -1691,5 +1734,84 @@ public class DomUtil
         }
 
         return result;
+    }
+
+    private static List<List<String>> splitIntoGroupsOfEqualItems(List<String> input)
+    {
+        List<List<String>> groups = new ArrayList<>();
+
+        if(hasItem(input))
+        {
+            for (int i = 0; i < input.size() ; i++)
+            {
+                List<String> currentGroup = new ArrayList<>();
+                currentGroup.add(input.get(i));
+
+                if(i < input.size() - 1)
+                {
+                    for (int j = i + 1; j < input.size() ; j++)
+                    {
+                        if(input.get(j).equals(input.get(i)))
+                        {
+                            currentGroup.add(input.get(j));
+                        }
+                    }
+                }
+
+                groups.add(currentGroup);
+            }
+        }
+
+        return groups;
+    }
+
+    private static List<String> indexingXpathGroup(String xpath, int numberOfXpaths)
+    {
+        List<String> result = new ArrayList<>();
+
+        if(xpath == null)
+        {
+            return result;
+        }
+        else if (numberOfXpaths == 1)
+        {
+            result.add(xpath);
+            return result;
+        }
+        else
+        {
+            for (int i = 0; i < numberOfXpaths; i++)
+            {
+                String indexedXpath = String.format("%s[%s]", xpath, i);
+                result.add(indexedXpath);
+            }
+
+            return result;
+        }
+    }
+
+    private static List<String> indexingXpathGroups(List<List<String>> groupsOfEqualXpaths)
+    {
+        List<String> result = new ArrayList<>();
+
+        if(hasItem(groupsOfEqualXpaths))
+        {
+            for ( List<String> group : groupsOfEqualXpaths)
+            {
+                if(hasItem(group))
+                {
+                    List<String> currentIndexedXpaths = indexingXpathGroup(group.get(0), group.size());
+                    result.addAll(currentIndexedXpaths);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static List<String> indexingXpaths(List<String> xpaths)
+    {
+        List<List<String>> groups = splitIntoGroupsOfEqualItems(xpaths);
+        return indexingXpathGroups(groups);
     }
 }
