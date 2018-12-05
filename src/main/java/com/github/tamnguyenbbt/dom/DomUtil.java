@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * <h1> Html DOM Utility </h1>
@@ -87,6 +88,247 @@ public class DomUtil
         return Jsoup.parse(htmlContent);
     }
 
+    public static String findXpathWithTwoAnchors(WebDriver driver,
+                                                 String parentAnchorElementOwnText,
+                                                 String anchorElementOwnText,
+                                                 String searchCssQuery)
+    {
+        return findXpathWithTwoAnchors(driver, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static String findXpathWithTwoAnchors(WebDriver driver,
+                                                 String parentAnchorElementOwnText,
+                                                 String anchorElementTagName,
+                                                 String anchorElementOwnText,
+                                                 String searchCssQuery)
+    {
+        return findXpathWithTwoAnchors(driver, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static String findXpathWithTwoAnchors(WebDriver driver,
+                                                 String parentAnchorElementTagName,
+                                                 String parentAnchorElementOwnText,
+                                                 String anchorElementTagName,
+                                                 String anchorElementOwnText,
+                                                 String searchCssQuery)
+    {
+        String xpath = findXpathWithTwoAnchorsExactMatch(driver,
+                                                         parentAnchorElementTagName,
+                                                         parentAnchorElementOwnText,
+                                                         anchorElementTagName,
+                                                         anchorElementOwnText,
+                                                         searchCssQuery);
+
+        if (xpath == null)
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName,
+                                                                  parentAnchorElementOwnText, true);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+            xpath = findXpathWithTwoAnchorsExactMatch(driver, parentAnchorElementInfo, anchorElementInfo,
+                                                      searchCssQuery);
+        }
+
+        return xpath;
+    }
+
+    public static String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
+                                                           String parentAnchorElementOwnText,
+                                                           String anchorElementOwnText,
+                                                           String searchCssQuery)
+    {
+        return findXpathWithTwoAnchorsExactMatch(driver,
+                                                 parentAnchorElementOwnText,
+                                                 null,
+                                                 anchorElementOwnText,
+                                                 searchCssQuery);
+    }
+
+    public static String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
+                                                           String parentAnchorElementOwnText,
+                                                           String anchorElementTagName,
+                                                           String anchorElementOwnText,
+                                                           String searchCssQuery)
+    {
+        return findXpathWithTwoAnchorsExactMatch(driver,
+                                                 null,
+                                                 parentAnchorElementOwnText,
+                                                 anchorElementTagName,
+                                                 anchorElementOwnText,
+                                                 searchCssQuery);
+    }
+
+    public static String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
+                                                           String parentAnchorElementTagName,
+                                                           String parentAnchorElementOwnText,
+                                                           String anchorElementTagName,
+                                                           String anchorElementOwnText,
+                                                           String searchCssQuery)
+    {
+        return findXpathWithTwoAnchorsExactMatch(driver,
+                                                 new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
+                                                 new ElementInfo(anchorElementTagName, anchorElementOwnText),
+                                                 searchCssQuery);
+    }
+
+    public static String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
+                                                           ElementInfo parentAnchorElementInfo,
+                                                           ElementInfo anchorElementInfo,
+                                                           String searchCssQuery)
+    {
+        Elements anchorElements = findElements(driver, parentAnchorElementInfo, anchorElementInfo);
+        return findXpath(driver, anchorElements, searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
+                                                          String parentAnchorElementOwnText,
+                                                          String anchorElementOwnText,
+                                                          String searchCssQuery)
+    {
+        return findWebElementWithTwoAnchors(driver,
+                                            parentAnchorElementOwnText,
+                                            null,
+                                            anchorElementOwnText,
+                                            searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
+                                                          String parentAnchorElementOwnText,
+                                                          String anchorElementTagName,
+                                                          String anchorElementOwnText,
+                                                          String searchCssQuery)
+    {
+        return findWebElementWithTwoAnchors(driver,
+                                            null,
+                                            parentAnchorElementOwnText,
+                                            anchorElementTagName,
+                                            anchorElementOwnText,
+                                            searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
+                                                          String parentAnchorElementTagName,
+                                                          String parentAnchorElementOwnText,
+                                                          String anchorElementTagName,
+                                                          String anchorElementOwnText,
+                                                          String searchCssQuery)
+    {
+        WebElement webElement = findWebElementWithTwoAnchorsExactMatch(driver,
+                                                                       parentAnchorElementTagName,
+                                                                       parentAnchorElementOwnText,
+                                                                       anchorElementTagName,
+                                                                       anchorElementOwnText,
+                                                                       searchCssQuery);
+
+        if(webElement == null)
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+            webElement = findWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+        }
+
+        return webElement;
+    }
+
+    public static WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
+                                                                    String parentAnchorElementOwnText,
+                                                                    String anchorElementOwnText,
+                                                                    String searchCssQuery)
+    {
+        return findWebElementWithTwoAnchorsExactMatch(driver,
+                                                      parentAnchorElementOwnText,
+                                                      null,
+                                                      anchorElementOwnText,
+                                                      searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
+                                                                    String parentAnchorElementOwnText,
+                                                                    String anchorElementTagName,
+                                                                    String anchorElementOwnText,
+                                                                    String searchCssQuery)
+    {
+        return findWebElementWithTwoAnchorsExactMatch(driver,
+                                                      null,
+                                                      parentAnchorElementOwnText,
+                                                      anchorElementTagName,
+                                                      anchorElementOwnText,
+                                                      searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
+                                                                    String parentAnchorElementTagName,
+                                                                    String parentAnchorElementOwnText,
+                                                                    String anchorElementTagName,
+                                                                    String anchorElementOwnText,
+                                                                    String searchCssQuery)
+    {
+        return findWebElementWithTwoAnchorsExactMatch(driver,
+                                                      new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
+                                                      new ElementInfo(anchorElementTagName, anchorElementOwnText),
+                                                      searchCssQuery);
+    }
+
+    public static WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
+                                                                    ElementInfo parentAnchorElementInfo,
+                                                                    ElementInfo anchorElementInfo,
+                                                                    String searchCssQuery)
+    {
+        Elements anchorElements = findElements(driver, parentAnchorElementInfo, anchorElementInfo);
+        return findWebElement(driver, anchorElements, searchCssQuery);
+    }
+
+    public static WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
+                                                                                String anchorElementOwnText,
+                                                                                String searchCssQuery)
+    {
+        return findWebElementHandlingPossibleMultipleAnchorsFound(driver, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
+                                                                                String anchorElementTagName,
+                                                                                String anchorElementOwnText,
+                                                                                String searchCssQuery)
+    {
+        ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText);
+        WebElement webElement = findWebElement(driver, anchorElementInfo, searchCssQuery);
+
+        if(webElement == null)
+        {
+            anchorElementInfo.whereOwnTextContainingPattern = true;
+            webElement = findWebElement(driver, anchorElementInfo, searchCssQuery);
+        }
+
+        return webElement;
+    }
+
+    public static WebElement findWebElement(WebDriver driver,
+                                            String anchorElementOwnText,
+                                            String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return findWebElement(driver, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public static WebElement findWebElement(WebDriver driver,
+                                            String anchorElementTagName,
+                                            String anchorElementOwnText,
+                                            String searchCssQuery)
+        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        WebElement webElement = findWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+
+        if(webElement == null)
+        {
+            try
+            {
+                webElement = findWebElementExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText, true), searchCssQuery);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+        }
+
+        return webElement;
+    }
+
     /**
      * get Selenium WebElement from a browser managed by Selenium WebDriver
      *
@@ -102,13 +344,13 @@ public class DomUtil
      * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
      *                                               This occurs when the found elements having the same DOM distances to the anchor element
      */
-    public static WebElement findElement(
+    public static WebElement findWebElementExactMatch(
             WebDriver driver,
             String anchorElementOwnText,
             String searchCssQuery)
             throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return findElement(driver, null, anchorElementOwnText, searchCssQuery);
+        return findWebElementExactMatch(driver, null, anchorElementOwnText, searchCssQuery);
     }
 
     /**
@@ -127,32 +369,20 @@ public class DomUtil
      * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
      *                                               This occurs when the found elements having the same DOM distances to the anchor element
      */
-    public static WebElement findElement(
+    public static WebElement findWebElementExactMatch(
             WebDriver driver,
             String anchorElementTagName,
             String anchorElementOwnText,
             String searchCssQuery)
             throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        Document document = DomUtil.getActiveDocument(driver);
-
-        if(document == null)
-        {
-            return null;
-        }
-
-        String xpath;
-
         try
         {
-            xpath = getXPath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+            return findWebElementExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText),searchCssQuery);
         }
-        catch(AmbiguousFoundXPathsException e)
-        {
-            throw new AmbiguousFoundWebElementsException("More than one web element found");
-        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
 
-        return xpath == null ? null : driver.findElement(By.xpath(xpath));
+        return null;
     }
 
     /**
@@ -171,7 +401,7 @@ public class DomUtil
      * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
      *                                               This occurs when the found elements having the same DOM distances to the anchor element
      */
-    public static WebElement findElement(
+    public static WebElement findWebElementExactMatch(
             WebDriver driver,
             ElementInfo anchorElementInfo,
             String searchCssQuery)
@@ -731,109 +961,6 @@ public class DomUtil
         return getElementsMatchingOwnText(document, pattern, true, true, true);
     }
 
-    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-    {
-        return findWebElementWithTwoAnchors(driver,
-                parentAnchorElementOwnText,
-                null,
-                anchorElementOwnText,
-                searchCssQuery);
-    }
-
-    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementTagName,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-    {
-        return findWebElementWithTwoAnchors(driver,
-                null,
-                parentAnchorElementOwnText,
-                anchorElementTagName,
-                anchorElementOwnText,
-                searchCssQuery);
-    }
-
-    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementTagName,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementTagName,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-    {
-        Elements anchorElements = findElements(driver,
-                new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
-                new ElementInfo(anchorElementTagName, anchorElementOwnText));
-        return findWebElement(driver, anchorElements, searchCssQuery);
-    }
-
-    public static WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          ElementInfo parentAnchorElementInfo,
-                                                          ElementInfo anchorElementInfo,
-                                                          String searchCssQuery)
-    {
-        Elements anchorElements = findElements(driver, parentAnchorElementInfo, anchorElementInfo);
-        return findWebElement(driver, anchorElements, searchCssQuery);
-    }
-
-    public static WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
-                                                                                String anchorElementOwnText,
-                                                                                String searchCssQuery)
-    {
-        return findWebElementHandlingPossibleMultipleAnchorsFound(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public static WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
-                                                                         String anchorElementTagName,
-                                                                         String anchorElementOwnText,
-                                                                         String searchCssQuery)
-    {
-        ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText);
-        WebElement webElement = findWebElement(driver, anchorElementInfo, searchCssQuery);
-
-        if(webElement == null)
-        {
-            anchorElementInfo.whereOwnTextContainingPattern = true;
-            webElement = findWebElement(driver, anchorElementInfo, searchCssQuery);
-        }
-
-        return webElement;
-    }
-
-    public static WebElement findWebElement(WebDriver driver,
-                                            String anchorElementOwnText,
-                                            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElement(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public static WebElement findWebElement(WebDriver driver,
-                                            String anchorElementTagName,
-                                            String anchorElementOwnText,
-                                            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        WebElement webElement = findElement(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-
-        if(webElement == null)
-        {
-            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText);
-            anchorElementInfo.whereOwnTextContainingPattern = true;
-
-            try
-            {
-                webElement = findElement(driver, anchorElementInfo, searchCssQuery);
-            }
-            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
-        }
-
-        return webElement;
-    }
-
     protected static List<Element> filterByPattern(List<Element> elements, String pattern, Condition condition)
     {
         List<Element> filtered = new ArrayList<>();
@@ -893,38 +1020,10 @@ public class DomUtil
         return findWebElement(driver, document, anchorElements, searchCssQuery);
     }
 
-    protected static String buildXpath(SearchElementRecord record, Element anchorElement)
+    protected static String findXpath(WebDriver driver, Elements anchorElements, String searchCssQuery)
     {
-        String xpath = null;
-        Element rootElement = record.rootElement;
-        Element foundElement = record.element;
-        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, foundElement);
-        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, anchorElement);
-        String rootElementTagName = rootElement.tagName();
-        String anchorElementOwnText = anchorElement.ownText();
-
-        if(xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
-        {
-            if(xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath =  String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
-            }
-            else if(xpathPartFromRootElementToAnchorElement == "")
-            {
-                xpath =  String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
-            }
-            else if(xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath =  String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement, rootElementTagName, anchorElementOwnText);
-            }
-            else
-            {
-                xpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
-                        rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
-            }
-        }
-
-        return xpath;
+        Document document = getActiveDocument(driver);
+        return findXpath(document, anchorElements, searchCssQuery);
     }
 
     protected static List<Element> getActiveAnchorElements(ElementInfo anchorElementInfo, List<Element> anchorElements)
@@ -1378,6 +1477,40 @@ public class DomUtil
         return hasItem(elements) ? elements.first() : null;
     }
 
+    protected static String buildXpath(SearchElementRecord record, Element anchorElement)
+    {
+        String xpath = null;
+        Element rootElement = record.rootElement;
+        Element foundElement = record.element;
+        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, foundElement);
+        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, anchorElement);
+        String rootElementTagName = rootElement.tagName();
+        String anchorElementOwnText = anchorElement.ownText();
+
+        if(xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
+        {
+            if(xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
+            {
+                xpath =  String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+            }
+            else if(xpathPartFromRootElementToAnchorElement == "")
+            {
+                xpath =  String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
+            }
+            else if(xpathPartFromRootElementToFoundElement == "")
+            {
+                xpath =  String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement, rootElementTagName, anchorElementOwnText);
+            }
+            else
+            {
+                xpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                                      rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
+            }
+        }
+
+        return xpath;
+    }
+
     protected static Elements toElements(List<Element> elements)
     {
         Elements result = new Elements();
@@ -1411,7 +1544,42 @@ public class DomUtil
         return (list == null || list.isEmpty());
     }
 
+    private static String findXpath(Document document, Elements anchorElements, String searchCssQuery)
+    {
+        return findWebObject(null, document, anchorElements, searchCssQuery, DomUtil::findXpathFunc);
+    }
+
     private static WebElement findWebElement(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery)
+    {
+        return findWebObject(driver, document, anchorElements, searchCssQuery, DomUtil::findWebElementFunc);
+    }
+
+    private static WebElement findWebElementFunc(FindFuncParam params)
+    {
+        try
+        {
+            String xpath = getXPath(params.anchorElement, params.searchElements);
+            return params.driver.findElement(By.xpath(xpath));
+        }
+        catch(AmbiguousFoundXPathsException e)
+        {
+            return null;
+        }
+    }
+
+    private static String findXpathFunc(FindFuncParam params)
+    {
+        try
+        {
+            return getXPath(params.anchorElement, params.searchElements);
+        }
+        catch(AmbiguousFoundXPathsException e)
+        {
+            return null;
+        }
+    }
+
+    private static <T> T findWebObject(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery, Function<FindFuncParam, T> function)
     {
         if(document == null)
         {
@@ -1424,12 +1592,13 @@ public class DomUtil
         {
             for (Element item : anchorElements)
             {
-                try
+                FindFuncParam functionParams = new FindFuncParam(driver, item, searchElements);
+                T result = function.apply(functionParams);
+
+                if(result != null)
                 {
-                    String xpath = getXPath(item, searchElements);
-                    return driver.findElement(By.xpath(xpath));
+                    return result;
                 }
-                catch(AmbiguousFoundXPathsException e){}
             }
         }
 
