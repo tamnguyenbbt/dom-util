@@ -20,11 +20,13 @@ import java.util.UUID;
 public class DomUtilTest
 {
     private String url;
+    private DomUtil domUtil;
 
     @Before
     public void init()
     {
         url = "https://accounts.google.com/signup/v2/webcreateaccount?hl=en&flowName=GlifWebSignIn&flowEntry=SignUp";
+        domUtil = new DomUtil();
     }
 
     @Test
@@ -32,10 +34,10 @@ public class DomUtilTest
     {
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        List<Element> elements = DomUtil.getElementsByTagNameContainingOwnText(document, "div", "Username");
+        List<Element> elements = domUtil.getElementsByTagNameContainingOwnText(document, "div", "Username");
 
         //Assert
         Assert.assertTrue(elements != null);
@@ -48,10 +50,10 @@ public class DomUtilTest
     {
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        List<Element> elements = DomUtil.getElementsByTagNameMatchingOwnText(document, "div", "Username");
+        List<Element> elements = domUtil.getElementsByTagNameMatchingOwnText(document, "div", "Username");
 
         //Assert
         Assert.assertTrue(elements != null);
@@ -64,10 +66,10 @@ public class DomUtilTest
     {
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        List<Element> elements = DomUtil.getElementsMatchingOwnText(document, "Username");
+        List<Element> elements = domUtil.getElementsMatchingOwnText(document, "Username");
 
         //Assert
         Assert.assertTrue(elements != null);
@@ -81,11 +83,11 @@ public class DomUtilTest
         //Arrange
         String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        String xpath1 = DomUtil.getXPaths(document, "div", "Username", "input").get(0);
-        String xpath2 = DomUtil.getXPaths(document, "Username", "input").get(0);
+        String xpath1 = domUtil.getXPaths(document, "div", "Username", "input").get(0);
+        String xpath2 = domUtil.getXPaths(document, "Username", "input").get(0);
 
         //Assert
         Assert.assertEquals(expectedXPath, xpath1);
@@ -98,7 +100,7 @@ public class DomUtilTest
         //Arrange
         String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
         ElementInfo anchorElementInfo = new ElementInfo();
@@ -107,8 +109,8 @@ public class DomUtilTest
         anchorElementInfo.indexIfMultipleFound = 0;
         anchorElementInfo.whereIgnoreCaseForOwnText = true;
         anchorElementInfo.whereOwnTextContainingPattern = true;
-        String xpath1 = DomUtil.getXPaths(document, anchorElementInfo, "input").get(0);
-        String xpath2 = DomUtil.getXPaths(document, "Username", "input").get(0);
+        String xpath1 = domUtil.getXPaths(document, anchorElementInfo, "input").get(0);
+        String xpath2 = domUtil.getXPaths(document, "Username", "input").get(0);
 
         //Assert
         Assert.assertEquals(expectedXPath, xpath1);
@@ -121,11 +123,11 @@ public class DomUtilTest
         //Arrange
         String expectedJSNameValue = "YPqjbf";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        Element userNameTextBox1 = DomUtil.getClosestElements(document, "div", "Username", "input").get(0);
-        Element userNameTextBox2 = DomUtil.getClosestElements(document, "Username", "input").get(0);
+        Element userNameTextBox1 = domUtil.getClosestElements(document, "div", "Username", "input").get(0);
+        Element userNameTextBox2 = domUtil.getClosestElements(document, "Username", "input").get(0);
 
         //Assert
         Assert.assertEquals(expectedJSNameValue, userNameTextBox1.attr("jsname"));
@@ -140,11 +142,11 @@ public class DomUtilTest
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
-        Document document = DomUtil.getActiveDocument(driver);
+        Document document = domUtil.getActiveDocument(driver);
         driver.quit();
 
         //Act
-        String xpath = DomUtil.getXPath(document, "div", "Username", "input");
+        String xpath = domUtil.getXPath(document, "div", "Username", "input");
 
         //Assert
         Assert.assertEquals(expectedXPath, xpath);
@@ -156,10 +158,10 @@ public class DomUtilTest
         //Arrange
         String expectedXPath = "//button[contains(text(),'Next')]";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = DomUtil.htmlFileToDocument(resourcePath);
+        Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        String xpath = DomUtil.getXPath(document, "button", "Next", "button");
+        String xpath = domUtil.getXPath(document, "button", "Next", "button");
 
         //Assert
         Assert.assertEquals(expectedXPath, xpath);
@@ -175,8 +177,8 @@ public class DomUtilTest
         driver.get(url);
 
         //Act
-        Document document = DomUtil.getActiveDocument(driver);
-        String xpath = DomUtil.getXPath(document, "div", "Username", "input");
+        Document document = domUtil.getActiveDocument(driver);
+        String xpath = domUtil.getXPath(document, "div", "Username", "input");
         WebElement userName = driver.findElement(By.xpath(xpath));
         userName.sendKeys("Happy Testing!");
         Thread.sleep(2000); //open your eyes to see
@@ -194,16 +196,16 @@ public class DomUtilTest
         String uuid = UUID.randomUUID().toString().substring(0, 20);
 
         //Act
-        DomUtil.findWebElement(driver, "First name", "input").sendKeys(uuid);
-        DomUtil.findWebElement(driver, "Last name", "input").sendKeys(uuid);
-        DomUtil.findWebElement(driver, "Username", "input").sendKeys(uuid);
-        DomUtil.findWebElement(driver, "Password", "input").sendKeys(uuid);
-        DomUtil.findWebElement(driver, "Confirm", "input").sendKeys(uuid);
-        DomUtil.findWebElement(driver, "Next", "span").click();
+        domUtil.findWebElement(driver, "First name", "input").sendKeys(uuid);
+        domUtil.findWebElement(driver, "Last name", "input").sendKeys(uuid);
+        domUtil.findWebElement(driver, "Username", "input").sendKeys(uuid);
+        domUtil.findWebElement(driver, "Password", "input").sendKeys(uuid);
+        domUtil.findWebElement(driver, "Confirm", "input").sendKeys(uuid);
+        domUtil.findWebElement(driver, "Next", "span").click();
 
         try
         {
-            DomUtil.findWebElement(driver, "invalid anchor", "input").sendKeys(String.format("%s@google.com", uuid));
+            domUtil.findWebElement(driver, "invalid anchor", "input").sendKeys(String.format("%s@google.com", uuid));
         }
         catch(NoAnchorElementFoundException e)
         {
@@ -225,7 +227,7 @@ public class DomUtilTest
         driver.get(url);
 
         //Act
-        WebElement firstName = DomUtil.findWebElement(driver, "First name", "label");
+        WebElement firstName = domUtil.findWebElement(driver, "First name", "label");
         Thread.sleep(2000); //open your eyes to see
         driver.quit();
 
