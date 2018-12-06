@@ -22,6 +22,12 @@ public class ElementInfo
         this.indexIfMultipleFound = indexIfMultipleFound;
     }
 
+    public ElementInfo(String tagName)
+    {
+        this();
+        this.tagName = tagName;
+    }
+
     public ElementInfo(String tagName, String ownText)
     {
         this();
