@@ -11,6 +11,7 @@ import org.openqa.selenium.WebElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -25,11 +26,17 @@ import java.util.List;
  */
 public class DomUtil
 {
-    private boolean returnErrorOnMultipleAnchorFound;
+    private boolean returnErrorOnMultipleAnchorsFound;
+    private boolean returnErrorOnMultipleWebElementsFound;
 
-    public void returnErrorOnMultipleAnchorFound(boolean returnErrorOnMultipleAnchorFound)
+    public void returnErrorOnMultipleWebElementsFound(boolean returnErrorOnMultipleWebElementsFound)
     {
-        this.returnErrorOnMultipleAnchorFound = returnErrorOnMultipleAnchorFound;
+       this.returnErrorOnMultipleWebElementsFound = returnErrorOnMultipleWebElementsFound;
+    }
+
+    public void returnErrorOnMultipleAnchorsFound(boolean returnErrorOnMultipleAnchorsFound)
+    {
+        this.returnErrorOnMultipleAnchorsFound = returnErrorOnMultipleAnchorsFound;
     }
 
     /**
@@ -440,7 +447,39 @@ public class DomUtil
             throw new AmbiguousFoundWebElementsException("More than one web element found");
         }
 
-        return xpath == null ? null : driver.findElement(By.xpath(xpath));
+        return xpath == null ? null : findWebElement(driver, xpath);
+    }
+
+    public List<String> getIndexedXpaths(WebDriver driver, String xpath)
+    {
+        List<String> result = new ArrayList<>();
+
+        if(xpath == null)
+        {
+            return result;
+        }
+
+        List<WebElement> foundWebElements = driver.findElements(By.xpath(xpath));
+
+        if(hasItem(foundWebElements))
+        {
+            int numberOfIndexedXpaths = foundWebElements.size();
+
+            if(numberOfIndexedXpaths == 1)
+            {
+                result.add(xpath);
+            }
+            else
+            {
+                for (int i = 0; i < numberOfIndexedXpaths; i++)
+                {
+                    String indexedXpath = String.format("%s[%s]", xpath, i);
+                    result.add(indexedXpath);
+                }
+            }
+        }
+
+        return result;
     }
 
     public String findXpath(WebDriver driver,
@@ -730,7 +769,7 @@ public class DomUtil
             }
         }
 
-        return indexingXpaths(xpathList);
+        return new ArrayList<>(new HashSet<>(xpathList));
     }
 
     /**
@@ -1078,7 +1117,7 @@ public class DomUtil
 
         if(hasItem(anchorElements) && hasItem(searchElements))
         {
-            if(returnErrorOnMultipleAnchorFound && anchorElements.size() > 1)
+            if(returnErrorOnMultipleAnchorsFound && anchorElements.size() > 1)
             {
                 throw new AmbiguousAnchorElementsException("More than one anchor elements found");
             }
@@ -1665,7 +1704,14 @@ public class DomUtil
     private String findXpath(Document document, Elements anchorElements, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
     {
-        return findWebObject(null, document, anchorElements, searchCssQuery, findXpathFunc);
+        try
+        {
+            return findWebObject(null, document, anchorElements, searchCssQuery, findXpathFunc);
+        }
+        catch(AmbiguousFoundWebElementsException e)
+        {}
+
+        return null;
     }
 
     private WebElement findWebElement(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery)
@@ -1681,10 +1727,10 @@ public class DomUtil
        }
     }
 
-    private WebElement findWebElement(FindFuncParam params) throws AmbiguousFoundXPathsException
+    private WebElement findWebElement(FindFuncParam params) throws AmbiguousFoundXPathsException, AmbiguousFoundWebElementsException
     {
         String xpath = getXPath(params.anchorElement, params.searchElements);
-        return params.driver.findElement(By.xpath(xpath));
+        return findWebElement(params.driver, xpath);
     }
 
     private String findXpath(FindFuncParam params) throws AmbiguousFoundXPathsException
@@ -1717,7 +1763,7 @@ public class DomUtil
     }
 
     private <T> T findWebObject(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery, IFindObjectFunction function)
-    throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException, AmbiguousFoundWebElementsException
     {
         if(document == null)
         {
@@ -1728,9 +1774,10 @@ public class DomUtil
 
         if(hasItem(anchorElements) && hasItem(searchElements))
         {
-            AmbiguousFoundXPathsException lastException = null;
+            AmbiguousFoundXPathsException lastAmbiguousFoundXPathsException = null;
+            AmbiguousFoundWebElementsException lastAmbiguousFoundWebElementsException = null;
 
-            if(returnErrorOnMultipleAnchorFound && anchorElements.size() > 1)
+            if(returnErrorOnMultipleAnchorsFound && anchorElements.size() > 1)
             {
                 throw new AmbiguousAnchorElementsException("More than one anchor elements found");
             }
@@ -1743,13 +1790,25 @@ public class DomUtil
                 {
                     return (T)function.apply(functionParams);
                 }
-                catch(AmbiguousFoundXPathsException e)
+                catch(AmbiguousFoundXPathsException e1)
                 {
-                    lastException = e;
+                    lastAmbiguousFoundXPathsException = e1;
+                }
+                catch(AmbiguousFoundWebElementsException e2)
+                {
+                    lastAmbiguousFoundWebElementsException = e2;
                 }
             }
 
-            throw lastException;
+            if(lastAmbiguousFoundXPathsException != null)
+            {
+                throw lastAmbiguousFoundXPathsException;
+            }
+
+            if(lastAmbiguousFoundWebElementsException != null)
+            {
+                throw lastAmbiguousFoundWebElementsException;
+            }
         }
 
         return null;
@@ -1781,82 +1840,20 @@ public class DomUtil
         return result;
     }
 
-    private List<List<String>> splitIntoGroupsOfEqualItems(List<String> input)
+    private WebElement findWebElement(WebDriver driver, String xpath) throws AmbiguousFoundWebElementsException
     {
-        List<List<String>> groups = new ArrayList<>();
+        List<WebElement> foundWebElements = driver.findElements(By.xpath(xpath));
 
-        if(hasItem(input))
+        if(hasItem(foundWebElements))
         {
-            for (int i = 0; i < input.size() ; i++)
+            if(foundWebElements.size() > 1 && returnErrorOnMultipleWebElementsFound)
             {
-                List<String> currentGroup = new ArrayList<>();
-                currentGroup.add(input.get(i));
-
-                if(i < input.size() - 1)
-                {
-                    for (int j = i + 1; j < input.size() ; j++)
-                    {
-                        if(input.get(j).equals(input.get(i)))
-                        {
-                            currentGroup.add(input.get(j));
-                        }
-                    }
-                }
-
-                groups.add(currentGroup);
-            }
-        }
-
-        return groups;
-    }
-
-    private List<String> indexingXpathGroup(String xpath, int numberOfXpaths)
-    {
-        List<String> result = new ArrayList<>();
-
-        if(xpath == null)
-        {
-            return result;
-        }
-        else if (numberOfXpaths == 1)
-        {
-            result.add(xpath);
-            return result;
-        }
-        else
-        {
-            for (int i = 0; i < numberOfXpaths; i++)
-            {
-                String indexedXpath = String.format("%s[%s]", xpath, i);
-                result.add(indexedXpath);
+                throw new AmbiguousFoundWebElementsException("More than one web elements found");
             }
 
-            return result;
-        }
-    }
-
-    private List<String> indexingXpathGroups(List<List<String>> groupsOfEqualXpaths)
-    {
-        List<String> result = new ArrayList<>();
-
-        if(hasItem(groupsOfEqualXpaths))
-        {
-            for ( List<String> group : groupsOfEqualXpaths)
-            {
-                if(hasItem(group))
-                {
-                    List<String> currentIndexedXpaths = indexingXpathGroup(group.get(0), group.size());
-                    result.addAll(currentIndexedXpaths);
-                }
-            }
+            return driver.findElement(By.xpath(xpath));
         }
 
-        return result;
-    }
-
-    private List<String> indexingXpaths(List<String> xpaths)
-    {
-        List<List<String>> groups = splitIntoGroupsOfEqualItems(xpaths);
-        return indexingXpathGroups(groups);
+        return null;
     }
 }
