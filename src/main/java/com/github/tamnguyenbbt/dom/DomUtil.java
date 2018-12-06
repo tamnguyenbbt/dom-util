@@ -2,17 +2,24 @@ package com.github.tamnguyenbbt.dom;
 
 import com.github.tamnguyenbbt.exception.*;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <h1> Html DOM Utility </h1>
@@ -190,13 +197,41 @@ public class DomUtil
     }
 
     public String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
-                                                           ElementInfo parentAnchorElementInfo,
-                                                           ElementInfo anchorElementInfo,
-                                                           String searchCssQuery)
+                                                    ElementInfo parentAnchorElementInfo,
+                                                    ElementInfo anchorElementInfo,
+                                                    String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
     {
-        Elements anchorElements = findElements(driver, parentAnchorElementInfo, anchorElementInfo);
-        return findXpath(driver, anchorElements, searchCssQuery);
+        Elements anchorElementsByLink = findElements(driver, parentAnchorElementInfo, anchorElementInfo, SearchMethodEnum.ByLink);
+
+        if(hasItem(anchorElementsByLink))
+        {
+            return findXpath(driver, anchorElementsByLink, searchCssQuery);
+        }
+        else
+        {
+            Elements elementsByLink = findElements(driver, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethodEnum.ByLink);
+
+            if(hasItem(elementsByLink))
+            {
+                Document document = getActiveDocument(driver);
+                Elements anchorElements = toElements(getElementsByTagNameMatchingOwnText(
+                    document,
+                    anchorElementInfo.tagName,
+                    anchorElementInfo.ownText,
+                    !anchorElementInfo.whereIgnoreCaseForOwnText,
+                    !anchorElementInfo.whereOwnTextContainingPattern,
+                    !anchorElementInfo.whereIncludingTabsAndSpacesForOwnText));
+
+                List<Element> filteredAnchors = getElementsWithShortestDistance(elementsByLink, anchorElements);
+                return findXpath(driver, toElements(filteredAnchors), searchCssQuery);
+            }
+            else
+            {
+                Elements anchorElementsByShortestDistance = findElements(driver, parentAnchorElementInfo, anchorElementInfo, SearchMethodEnum.ByDistance);
+                return findXpath(driver, anchorElementsByShortestDistance, searchCssQuery);
+            }
+        }
     }
 
     public WebElement findWebElementWithTwoAnchors(WebDriver driver,
@@ -295,13 +330,41 @@ public class DomUtil
     }
 
     public WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
-                                                                    ElementInfo parentAnchorElementInfo,
-                                                                    ElementInfo anchorElementInfo,
-                                                                    String searchCssQuery)
+                                                             ElementInfo parentAnchorElementInfo,
+                                                             ElementInfo anchorElementInfo,
+                                                             String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        Elements anchorElements = findElements(driver, parentAnchorElementInfo, anchorElementInfo);
-        return findWebElement(driver, anchorElements, searchCssQuery);
+        Elements anchorElementsByLink = findElements(driver, parentAnchorElementInfo, anchorElementInfo, SearchMethodEnum.ByLink);
+
+        if(hasItem(anchorElementsByLink))
+        {
+            return findWebElement(driver, anchorElementsByLink, searchCssQuery);
+        }
+        else
+        {
+            Elements elementsByLink = findElements(driver, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethodEnum.ByLink);
+
+            if(hasItem(elementsByLink))
+            {
+                Document document = getActiveDocument(driver);
+                Elements anchorElements = toElements(getElementsByTagNameMatchingOwnText(
+                    document,
+                    anchorElementInfo.tagName,
+                    anchorElementInfo.ownText,
+                    !anchorElementInfo.whereIgnoreCaseForOwnText,
+                    !anchorElementInfo.whereOwnTextContainingPattern,
+                    !anchorElementInfo.whereIncludingTabsAndSpacesForOwnText));
+
+                List<Element> filteredAnchors = getElementsWithShortestDistance(elementsByLink, anchorElements);
+                return findWebElement(driver, toElements(filteredAnchors), searchCssQuery);
+            }
+            else
+            {
+                Elements anchorElementsByShortestDistance = findElements(driver, parentAnchorElementInfo, anchorElementInfo, SearchMethodEnum.ByDistance);
+                return findWebElement(driver, anchorElementsByShortestDistance, searchCssQuery);
+            }
+        }
     }
 
     public WebElement findWebElement(WebDriver driver,
@@ -752,14 +815,15 @@ public class DomUtil
     public List<String> getXPaths(Element anchorElement, Elements searchElements)
     {
         List<String> xpathList = new ArrayList<>();
-        List<SearchElementRecord> foundElementRecords = getClosestSearchElementsFromAnchorElement(anchorElement, searchElements);
+        List<SearchElementRecord> finalFoundRecords =
+            getSearchElementsFromAnchorElementByLinkAndShortestDistance(anchorElement, searchElements);
 
-        if(hasNoItem(foundElementRecords))
+        if(hasNoItem(finalFoundRecords))
         {
             return xpathList;
         }
 
-        for(SearchElementRecord record : foundElementRecords)
+        for(SearchElementRecord record : finalFoundRecords)
         {
             String xpath = buildXpath(record, anchorElement);
 
@@ -970,18 +1034,7 @@ public class DomUtil
      */
     public List<Element> getClosestElements(Element anchorElement, Elements searchElements)
     {
-        List<Element> elements = new ArrayList<>();
-        List<SearchElementRecord> foundElementRecords = getClosestSearchElementsFromAnchorElement(anchorElement, searchElements);
-
-        if(hasItem(foundElementRecords))
-        {
-            for(SearchElementRecord record : foundElementRecords)
-            {
-                elements.add(record.element);
-            }
-        }
-
-        return elements;
+        return getElements(anchorElement, searchElements, SearchMethodEnum.ByLinkAndDistance);
     }
 
     /**
@@ -1107,7 +1160,7 @@ public class DomUtil
         return filtered;
     }
 
-    protected Elements findElements(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
+    protected Elements findElements(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethodEnum searchMethod)
         throws AmbiguousAnchorElementsException
     {
         List<Element> result = new ArrayList<>();
@@ -1124,7 +1177,7 @@ public class DomUtil
 
             for (Element item : anchorElements)
             {
-                result = getClosestElements(item, searchElements);
+                result = getElements(item, searchElements, searchMethod);
 
                 if(hasItem(result))
                 {
@@ -1242,7 +1295,8 @@ public class DomUtil
 
         Element anchorElement = anchorElements.get(0);
         Elements searchElements = document.select(searchCssQuery);
-        List<SearchElementRecord> foundElementRecords = getClosestSearchElementsFromAnchorElement(anchorElement, searchElements);
+        List<SearchElementRecord> foundElementRecords =
+            getSearchElementsFromAnchorElementByLinkAndShortestDistance(anchorElement, searchElements);
 
         if(hasItem(searchElements) && hasItem(foundElementRecords))
         {
@@ -1294,36 +1348,96 @@ public class DomUtil
                         !elementInfo.whereIncludingTabsAndSpacesForOwnText);
     }
 
-    protected List<SearchElementRecord> getClosestSearchElementsFromAnchorElement(Element anchorElement, Elements searchElements)
+    protected List<Element> getElementsWithShortestDistance(Elements anchorElements, Elements searchElements)
     {
-        List<SearchElementRecord> foundElementRecords = new ArrayList<>();
+        List<SearchElementRecord> result = new ArrayList<>();
 
-        if(hasNoItem(searchElements) || anchorElement == null)
+        if(hasItem(anchorElements))
         {
-            return foundElementRecords;
-        }
-
-        for (int i = 0 ; i < searchElements.size(); i++)
-        {
-            Element currentSearchElement = searchElements.get(i);
-            SearchElementRecord searchElementRecord = buildSearchElementRecord(anchorElement, currentSearchElement, i);
-
-            if(searchElementRecord != null)
+            for (Element anchorElement : anchorElements)
             {
-                foundElementRecords.add(searchElementRecord);
+                List<SearchElementRecord> currentFound = getFoundElementRecords(anchorElement, searchElements, SearchMethodEnum.ByDistance);
+                result.addAll(currentFound);
             }
         }
 
-        List<SearchElementRecord> foundElementRecordsLinkedToAnchorElement = getFoundElementRecordsLinkedToAnchorElement(foundElementRecords, anchorElement);
+        List<SearchElementRecord> finalFoundRecords = getFoundElementRecordsWithShortestDistanceToAnchorElement(result);
 
-        if(hasItem(foundElementRecordsLinkedToAnchorElement))
+        return getElements(finalFoundRecords);
+    }
+
+    protected List<Element> getElements(Element anchorElement, Elements searchElements, SearchMethodEnum searchMethod)
+    {
+        List<SearchElementRecord> result = getFoundElementRecords(anchorElement, searchElements, searchMethod);
+        return getElements(result);
+    }
+
+    protected List<Element> getElements(List<SearchElementRecord> foundElementRecords)
+    {
+        List<Element> elements = new ArrayList<>();
+
+        if(hasItem(foundElementRecords))
         {
-            return foundElementRecordsLinkedToAnchorElement.size() == 1
-                    ? foundElementRecordsLinkedToAnchorElement
-                    : getFoundElementRecordsWithShortestDistanceToAnchorElement(foundElementRecordsLinkedToAnchorElement);
+            for(SearchElementRecord record : foundElementRecords)
+            {
+                elements.add(record.element);
+            }
         }
 
+        return elements;
+    }
+
+    protected List<SearchElementRecord> getFoundElementRecords(Element anchorElement, Elements searchElements, SearchMethodEnum searchMethod)
+    {
+        List<SearchElementRecord> result;
+
+        switch (searchMethod)
+        {
+            case ByLink:
+                result = getClosestSearchElementsFromAnchorElement(anchorElement, searchElements);
+                break;
+            case ByDistance:
+                result = getLinkedElementsFromAnchorElement(anchorElement, searchElements);
+                break;
+            case ByLinkAndDistance:
+                result = getSearchElementsFromAnchorElementByLinkAndShortestDistance(anchorElement, searchElements);
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
+        return result;
+    }
+
+    protected List<SearchElementRecord> getSearchElementsFromAnchorElementByLinkAndShortestDistance(Element anchorElement, Elements searchElements)
+    {
+        List<SearchElementRecord> linkedRecords = getLinkedElementsFromAnchorElement(anchorElement, searchElements);
+        List<SearchElementRecord> result;
+
+        if(hasItem(linkedRecords))
+        {
+            result = linkedRecords.size() == 1
+                ? linkedRecords
+                : getFoundElementRecordsWithShortestDistanceToAnchorElement(linkedRecords);
+        }
+        else
+        {
+            result = getClosestSearchElementsFromAnchorElement(anchorElement, searchElements);
+        }
+
+        return result;
+    }
+
+    protected List<SearchElementRecord> getClosestSearchElementsFromAnchorElement(Element anchorElement, Elements searchElements)
+    {
+        List<SearchElementRecord> foundElementRecords = buildSearchElementRecords(anchorElement, searchElements);
         return getFoundElementRecordsWithShortestDistanceToAnchorElement(foundElementRecords);
+    }
+
+    protected List<SearchElementRecord> getLinkedElementsFromAnchorElement(Element anchorElement, Elements searchElements)
+    {
+        List<SearchElementRecord> foundElementRecords = buildSearchElementRecords(anchorElement, searchElements);
+        return getFoundElementRecordsLinkedToAnchorElement(foundElementRecords, anchorElement);
     }
 
     /**
@@ -1374,19 +1488,22 @@ public class DomUtil
     {
         List<SearchElementRecord> result = new ArrayList<>();
 
-        if (hasItem(foundElementRecords) &&
-                anchorElement != null &&
-                anchorElement.hasAttr("for"))
+        if (hasItem(foundElementRecords) && anchorElement != null)
         {
-            String anchorElementId = anchorElement.attr("for");
+            Attribute anchorElementForAttribute = getAttributeByNameContainingPattern(anchorElement, "for");
 
-            for (SearchElementRecord item : foundElementRecords)
+            if(anchorElementForAttribute != null)
             {
-                String searchElementId = item.element.attr("id");
-
-                if(searchElementId != null && searchElementId == anchorElementId)
+                for (SearchElementRecord item : foundElementRecords)
                 {
-                    result.add(item);
+                    String searchElementId = item.element.attr("id");
+                    String searchElementName = item.element.attr("name");
+                    String anchorElementForAttributeValue = anchorElementForAttribute.getValue();
+
+                    if(searchElementId != null && (searchElementId == anchorElementForAttributeValue || searchElementName == anchorElementForAttributeValue))
+                    {
+                        result.add(item);
+                    }
                 }
             }
         }
@@ -1738,6 +1855,29 @@ public class DomUtil
         return getXPath(params.anchorElement, params.searchElements);
     }
 
+    private List<SearchElementRecord> buildSearchElementRecords(Element anchorElement, Elements searchElements)
+    {
+        List<SearchElementRecord> result = new ArrayList<>();
+
+        if(hasNoItem(searchElements) || anchorElement == null)
+        {
+            return result;
+        }
+
+        for (int i = 0 ; i < searchElements.size(); i++)
+        {
+            Element currentSearchElement = searchElements.get(i);
+            SearchElementRecord searchElementRecord = buildSearchElementRecord(anchorElement, currentSearchElement, i);
+
+            if(searchElementRecord != null)
+            {
+                result.add(searchElementRecord);
+            }
+        }
+
+        return result;
+    }
+
     private SearchElementRecord buildSearchElementRecord(Element anchorElement, Element searchElement, int searchElementIndex)
     {
         MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair = buildTreeContainingBothSearchAndAnchorElements(anchorElement, searchElement);
@@ -1842,7 +1982,9 @@ public class DomUtil
 
     private WebElement findWebElement(WebDriver driver, String xpath) throws AmbiguousFoundWebElementsException
     {
-        List<WebElement> foundWebElements = driver.findElements(By.xpath(xpath));
+        int timeoutInMs = 2000;
+        int pollingEveryInMs = timeoutInMs/10;
+        List<WebElement> foundWebElements = findWebElements(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
 
         if(hasItem(foundWebElements))
         {
@@ -1851,7 +1993,44 @@ public class DomUtil
                 throw new AmbiguousFoundWebElementsException("More than one web elements found");
             }
 
-            return driver.findElement(By.xpath(xpath));
+            return findWebElement(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+        }
+
+        return null;
+    }
+
+    private List<WebElement> findWebElements(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
+    {
+        Wait<WebDriver> wait = new FluentWait<>(driver)
+            .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
+            .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
+            .ignoring(NoSuchElementException.class);
+
+        return wait.until(d -> d.findElements(locator));
+    }
+
+    private WebElement findWebElement(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
+    {
+        Wait<WebDriver> wait = new FluentWait<>(driver)
+            .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
+            .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
+            .ignoring(NoSuchElementException.class);
+
+        return wait.until(d -> d.findElement(locator));
+    }
+
+    private Attribute getAttributeByNameContainingPattern(Element element, String pattern)
+    {
+        List<Attribute> anchorAttributes = element.attributes().asList();
+
+        for(Attribute item : anchorAttributes)
+        {
+            String attributeKey = item.getKey();
+
+            if(attributeKey.toLowerCase().contains(pattern.toLowerCase()))
+            {
+                return item;
+            }
         }
 
         return null;
