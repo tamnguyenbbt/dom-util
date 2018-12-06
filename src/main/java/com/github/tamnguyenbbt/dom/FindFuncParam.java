@@ -10,10 +10,10 @@ final class FindFuncParam
     protected Element anchorElement;
     protected Elements searchElements;
 
-    protected FindFuncParam(WebDriver driver, Element anchorElement, Elements searhElements)
+    protected FindFuncParam(WebDriver driver, Element anchorElement, Elements searchElements)
     {
         this.driver = driver;
         this.anchorElement = anchorElement;
-        this.searchElements = searhElements;
+        this.searchElements = searchElements;
     }
 }
