@@ -9,7 +9,7 @@ final class TreeElement
     protected Element element;
     protected List<Integer> position;
 
-    public TreeElement()
+    protected TreeElement()
     {
         position = new ArrayList<>();
     }
