@@ -7,7 +7,7 @@ final class MapEntry<K, V> implements Map.Entry<K,V>
     private final K key;
     private V value;
 
-    public MapEntry(K key, V value)
+    protected MapEntry(K key, V value)
     {
         this.key = key;
         this.value = value;
