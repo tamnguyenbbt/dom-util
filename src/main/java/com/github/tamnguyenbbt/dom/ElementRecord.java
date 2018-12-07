@@ -2,7 +2,7 @@ package com.github.tamnguyenbbt.dom;
 
 import org.jsoup.nodes.Element;
 
-final class SearchElementRecord
+final class ElementRecord
 {
     protected  int index;
     protected Element element;

@@ -1,6 +1,6 @@
 package com.github.tamnguyenbbt.dom;
 
-public enum SearchMethodEnum
+public enum SearchMethod
 {
     ByLink,
     ByDistance,
