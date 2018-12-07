@@ -13,4 +13,33 @@ final class TreeElement
     {
         position = new ArrayList<>();
     }
+
+    protected TreeElement(Element element)
+    {
+        this();
+        this.element = element;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+
+        if(!(obj instanceof TreeElement))
+        {
+            return false;
+        }
+
+        final TreeElement other = (TreeElement) obj;
+
+        if(super.equals(other))
+        {
+            return true;
+        }
+
+        return false;
+    }
 }
