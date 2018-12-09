@@ -5,13 +5,12 @@ public class ElementInfo
     public String tagName;
     public String ownText;
     public int indexIfMultipleFound;
-    public boolean whereIgnoreCaseForOwnText;
-    public boolean whereOwnTextContainingPattern;
-    public boolean whereIncludingTabsAndSpacesForOwnText;
+    public Condition condition;
 
     public ElementInfo()
     {
         indexIfMultipleFound = -1;
+        condition = new Condition();
     }
 
     public ElementInfo(String tagName, String ownText, int indexIfMultipleFound)
@@ -40,6 +39,6 @@ public class ElementInfo
         this();
         this.tagName = tagName;
         this.ownText = ownText;
-        this.whereOwnTextContainingPattern = whereOwnTextContainingPattern;
+        this.condition.whereOwnTextContainingPattern = whereOwnTextContainingPattern;
     }
 }

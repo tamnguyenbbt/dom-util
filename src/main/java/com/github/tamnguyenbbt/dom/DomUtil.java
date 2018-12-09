@@ -1,6 +1,8 @@
 package com.github.tamnguyenbbt.dom;
 
 import com.github.tamnguyenbbt.exception.*;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.time.StopWatch;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
@@ -11,8 +13,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
+import org.apache.log4j.Logger;
 
 /**
  * <h1> Html DOM Utility </h1>
@@ -33,25 +34,31 @@ import java.util.concurrent.TimeUnit;
  */
 public class DomUtil
 {
-    private boolean returnErrorOnMultipleAnchorsFound;
-    private boolean returnErrorOnMultipleWebElementsFound;
+    private final String ambiguousAnchorMessage = "%s anchor elements found";
+    private final String anchorIndexIfMultipleFoundOutOfBoundMessage = "indexIfMultipleFound property of the AnchorElementInfo provided is out of bound";
+    private final String ambiguousFoundElementsMessage = "%s elements found";
+    private final String ambiguousFoundXpathMessage = "%s xpaths found";
+    private final String ambiguousFoundWebElementMessage = "More than one web element found";
+    private int searchDepth;
+    private int timeoutInMs;
+    private Logger logger =  Logger.getLogger(this.getClass().getName());
 
-    public void returnErrorOnMultipleWebElementsFound(boolean returnErrorOnMultipleWebElementsFound)
+    public DomUtil()
     {
-       this.returnErrorOnMultipleWebElementsFound = returnErrorOnMultipleWebElementsFound;
+        searchDepth = 1;
+        timeoutInMs = 2000;
     }
 
-    public void returnErrorOnMultipleAnchorsFound(boolean returnErrorOnMultipleAnchorsFound)
+    public void setSearchDepth(int searchDepth)
     {
-        this.returnErrorOnMultipleAnchorsFound = returnErrorOnMultipleAnchorsFound;
+        this.searchDepth = searchDepth;
     }
 
-    /**
-     * get jsoup document from a browser managed by Selenium WebDriver
-     *
-     * @param driver Selenium WebDriver
-     * @return jsoup document. Null if driver is null
-     */
+    public void setTimeoutInMs(int timeoutInMs)
+    {
+        this.timeoutInMs = timeoutInMs;
+    }
+
     public Document getActiveDocument(WebDriver driver)
     {
         if(driver == null)
@@ -64,26 +71,11 @@ public class DomUtil
         return getDocument(htmlContent);
     }
 
-    /**
-     * get jsoup document from a file. jsoup parsing file with UTF-8 charset
-     *
-     * @param path path to html file
-     * @return jsoup document. Null if the file not exist
-     * @exception IOException
-     */
     public Document htmlFileToDocument(String path) throws IOException
     {
         return htmlFileToDocument(path, "UTF-8");
     }
 
-    /**
-     * get jsoup document from a file
-     *
-     * @param path path to html file
-     * @param charsetName charset name used by jsoup parsing
-     * @return jsoup document. Null if the file not exist
-     * @exception IOException
-     */
     public Document htmlFileToDocument(String path, String charsetName) throws IOException
     {
         File file = new File(path);
@@ -97,421 +89,9 @@ public class DomUtil
         return document;
     }
 
-    /**
-     * get jsoup document from html content
-     *
-     * @param htmlContent html content string
-     * @return jsoup document
-     */
     public Document getDocument(String htmlContent)
     {
         return Jsoup.parse(htmlContent);
-    }
-
-    public String findXpathWithTwoAnchors(WebDriver driver,
-                                                 String parentAnchorElementOwnText,
-                                                 String anchorElementOwnText,
-                                                 String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathWithTwoAnchors(driver, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public String findXpathWithTwoAnchors(WebDriver driver,
-                                                 String parentAnchorElementOwnText,
-                                                 String anchorElementTagName,
-                                                 String anchorElementOwnText,
-                                                 String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathWithTwoAnchors(driver, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-    }
-
-    public String findXpathWithTwoAnchors(WebDriver driver,
-                                                 String parentAnchorElementTagName,
-                                                 String parentAnchorElementOwnText,
-                                                 String anchorElementTagName,
-                                                 String anchorElementOwnText,
-                                                 String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        String xpath = findXpathWithTwoAnchorsExactMatch(driver,
-                                                         parentAnchorElementTagName,
-                                                         parentAnchorElementOwnText,
-                                                         anchorElementTagName,
-                                                         anchorElementOwnText,
-                                                         searchCssQuery);
-
-        if (xpath == null)
-        {
-            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName,
-                                                                  parentAnchorElementOwnText, true);
-            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
-            xpath = findXpathWithTwoAnchorsExactMatch(driver, parentAnchorElementInfo, anchorElementInfo,
-                                                      searchCssQuery);
-        }
-
-        return xpath;
-    }
-
-    public String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
-                                                           String parentAnchorElementOwnText,
-                                                           String anchorElementOwnText,
-                                                           String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathWithTwoAnchorsExactMatch(driver,
-                                                 parentAnchorElementOwnText,
-                                                 null,
-                                                 anchorElementOwnText,
-                                                 searchCssQuery);
-    }
-
-    public String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
-                                                           String parentAnchorElementOwnText,
-                                                           String anchorElementTagName,
-                                                           String anchorElementOwnText,
-                                                           String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathWithTwoAnchorsExactMatch(driver,
-                                                 null,
-                                                 parentAnchorElementOwnText,
-                                                 anchorElementTagName,
-                                                 anchorElementOwnText,
-                                                 searchCssQuery);
-    }
-
-    public String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
-                                                           String parentAnchorElementTagName,
-                                                           String parentAnchorElementOwnText,
-                                                           String anchorElementTagName,
-                                                           String anchorElementOwnText,
-                                                           String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathWithTwoAnchorsExactMatch(driver,
-                                                 new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
-                                                 new ElementInfo(anchorElementTagName, anchorElementOwnText),
-                                                 searchCssQuery);
-    }
-
-    public String findXpathWithTwoAnchorsExactMatch(WebDriver driver,
-                                                    ElementInfo parentAnchorElementInfo,
-                                                    ElementInfo anchorElementInfo,
-                                                    String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        Document document = getActiveDocument(driver);
-        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink);
-
-        if(hasItem(anchorElementsByLink))
-        {
-            return findXpath(driver, anchorElementsByLink, searchCssQuery);
-        }
-        else
-        {
-            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink);
-
-            if(hasItem(elementsByLink))
-            {
-                Elements anchorElements = toElements(getElementsByTagNameMatchingOwnText(
-                    document,
-                    anchorElementInfo.tagName,
-                    anchorElementInfo.ownText,
-                    !anchorElementInfo.whereIgnoreCaseForOwnText,
-                    !anchorElementInfo.whereOwnTextContainingPattern,
-                    !anchorElementInfo.whereIncludingTabsAndSpacesForOwnText));
-
-                List<Element> filteredAnchors = getClosestElements(elementsByLink, anchorElements);
-                return findXpath(driver, toElements(filteredAnchors), searchCssQuery);
-            }
-            else
-            {
-                Elements anchorElementsByShortestDistance = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByDistance);
-                return findXpath(driver, anchorElementsByShortestDistance, searchCssQuery);
-            }
-        }
-    }
-
-    public WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementWithTwoAnchors(driver,
-                                            parentAnchorElementOwnText,
-                                            null,
-                                            anchorElementOwnText,
-                                            searchCssQuery);
-    }
-
-    public WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementTagName,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementWithTwoAnchors(driver,
-                                            null,
-                                            parentAnchorElementOwnText,
-                                            anchorElementTagName,
-                                            anchorElementOwnText,
-                                            searchCssQuery);
-    }
-
-    public WebElement findWebElementWithTwoAnchors(WebDriver driver,
-                                                          String parentAnchorElementTagName,
-                                                          String parentAnchorElementOwnText,
-                                                          String anchorElementTagName,
-                                                          String anchorElementOwnText,
-                                                          String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        WebElement webElement = findWebElementWithTwoAnchorsExactMatch(driver,
-                                                                       parentAnchorElementTagName,
-                                                                       parentAnchorElementOwnText,
-                                                                       anchorElementTagName,
-                                                                       anchorElementOwnText,
-                                                                       searchCssQuery);
-
-        if(webElement == null)
-        {
-            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true);
-            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
-            webElement = findWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
-        }
-
-        return webElement;
-    }
-
-    public WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
-                                                                    String parentAnchorElementOwnText,
-                                                                    String anchorElementOwnText,
-                                                                    String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementWithTwoAnchorsExactMatch(driver,
-                                                      parentAnchorElementOwnText,
-                                                      null,
-                                                      anchorElementOwnText,
-                                                      searchCssQuery);
-    }
-
-    public WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
-                                                                    String parentAnchorElementOwnText,
-                                                                    String anchorElementTagName,
-                                                                    String anchorElementOwnText,
-                                                                    String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementWithTwoAnchorsExactMatch(driver,
-                                                      null,
-                                                      parentAnchorElementOwnText,
-                                                      anchorElementTagName,
-                                                      anchorElementOwnText,
-                                                      searchCssQuery);
-    }
-
-    public WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
-                                                                    String parentAnchorElementTagName,
-                                                                    String parentAnchorElementOwnText,
-                                                                    String anchorElementTagName,
-                                                                    String anchorElementOwnText,
-                                                                    String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementWithTwoAnchorsExactMatch(driver,
-                                                      new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
-                                                      new ElementInfo(anchorElementTagName, anchorElementOwnText),
-                                                      searchCssQuery);
-    }
-
-    public WebElement findWebElementWithTwoAnchorsExactMatch(WebDriver driver,
-                                                             ElementInfo parentAnchorElementInfo,
-                                                             ElementInfo anchorElementInfo,
-                                                             String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        Document document = getActiveDocument(driver);
-        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink);
-
-        if(hasItem(anchorElementsByLink))
-        {
-            return findWebElement(driver, document, anchorElementsByLink, searchCssQuery);
-        }
-        else
-        {
-            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink);
-
-            if(hasItem(elementsByLink))
-            {
-                Elements anchorElements = toElements(getElementsByTagNameMatchingOwnText(
-                    document,
-                    anchorElementInfo.tagName,
-                    anchorElementInfo.ownText,
-                    !anchorElementInfo.whereIgnoreCaseForOwnText,
-                    !anchorElementInfo.whereOwnTextContainingPattern,
-                    !anchorElementInfo.whereIncludingTabsAndSpacesForOwnText));
-
-                List<Element> filteredAnchors = getClosestElements(elementsByLink, anchorElements);
-                return findWebElement(driver, document, toElements(filteredAnchors), searchCssQuery);
-            }
-            else
-            {
-                Elements anchorElementsByShortestDistance = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByDistance);
-                return findWebElement(driver, document, anchorElementsByShortestDistance, searchCssQuery);
-            }
-        }
-    }
-
-    public WebElement findWebElement(WebDriver driver,
-                                            String anchorElementOwnText,
-                                            String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElement(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
-                                                                         String anchorElementOwnText,
-                                                                         String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementHandlingPossibleMultipleAnchorsFound(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public WebElement findWebElementHandlingPossibleMultipleAnchorsFound(WebDriver driver,
-                                                                         String anchorElementTagName,
-                                                                         String anchorElementOwnText,
-                                                                         String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText);
-        Document document = getActiveDocument(driver);
-        WebElement webElement = findWebElement(driver, document, anchorElementInfo, searchCssQuery);
-
-        if(webElement == null)
-        {
-            anchorElementInfo.whereOwnTextContainingPattern = true;
-            webElement = findWebElement(driver, document, anchorElementInfo, searchCssQuery);
-        }
-
-        return webElement;
-    }
-
-    public WebElement findWebElement(WebDriver driver,
-                                            String anchorElementTagName,
-                                            String anchorElementOwnText,
-                                            String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        WebElement webElement = findWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-
-        if(webElement == null)
-        {
-            try
-            {
-                webElement = findWebElementExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText, true), searchCssQuery);
-            }
-            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
-        }
-
-        return webElement;
-    }
-
-    /**
-     * get Selenium WebElement from a browser managed by Selenium WebDriver
-     *
-     * @param driver Selenium WebDriver
-     * @param anchorElementOwnText own text of an html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return Selenium WebElement based on the minimal DOM distance from possible found elements to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public WebElement findWebElementExactMatch(
-            WebDriver driver,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementExactMatch(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    /**
-     * get Selenium WebElement from a browser managed by Selenium WebDriver
-     *
-     * @param driver Selenium WebDriver
-     * @param anchorElementTagName html anchor tag
-     * @param anchorElementOwnText own text of the html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return Selenium WebElement based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public WebElement findWebElementExactMatch(
-            WebDriver driver,
-            String anchorElementTagName,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        try
-        {
-            return findWebElementExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText),searchCssQuery);
-        }
-        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
-
-        return null;
-    }
-
-    /**
-     * get Selenium WebElement from a browser managed by Selenium WebDriver
-     *
-     * @param driver Selenium WebDriver
-     * @param anchorElementInfo information about anchor element.
-     *                          The anchor element is an unique html element closest to the web element to search.
-     *                          The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return Selenium WebElement based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception AnchorIndexIfMultipleFoundOutOfBoundException when the indexIfMultipleFound property of @anchorElementInfo is out of bound
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundWebElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public WebElement findWebElementExactMatch(
-            WebDriver driver,
-            ElementInfo anchorElementInfo,
-            String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        String xpath;
-
-        try
-        {
-            xpath = findXpathExactMatch(driver, anchorElementInfo, searchCssQuery);
-        }
-        catch(AmbiguousFoundXPathsException e)
-        {
-            throw new AmbiguousFoundWebElementsException("More than one web element found");
-        }
-
-        return xpath == null ? null : findWebElement(driver, xpath);
     }
 
     public List<String> getIndexedXpaths(WebDriver driver, String xpath)
@@ -546,65 +126,360 @@ public class DomUtil
         return result;
     }
 
-    public String findXpath(WebDriver driver,
-                                   String anchorElementOwnText,
-                                   String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpath(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public String findXpath(WebDriver driver,
-                                   String anchorElementTagName,
-                                   String anchorElementOwnText,
-                                   String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        String xpath = findXpathExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-
-        if(xpath == null)
-        {
-            try
-            {
-                xpath = findXpathExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText, true), searchCssQuery);
-            }
-            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
-        }
-
-        return xpath;
-    }
-
-    public String findXpathExactMatch(
-        WebDriver driver,
-        String anchorElementOwnText,
-        String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return findXpathExactMatch(driver, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    public String findXpathExactMatch(
-        WebDriver driver,
-        String anchorElementTagName,
-        String anchorElementOwnText,
-        String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    public Element getElementWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                                      String searchCssQuery)
+            throws AmbiguousFoundElementsException
     {
         try
         {
-            return findXpathExactMatch(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText),searchCssQuery);
+            return getElementWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementOwnText,
+                    searchCssQuery, true);
         }
-        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
-
-        return null;
+        catch(AmbiguousAnchorElementsException e) { return null; }
     }
 
-    public String findXpathExactMatch(
-        WebDriver driver,
-        ElementInfo anchorElementInfo,
-        String searchCssQuery)
-        throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    public Element getElementWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                            String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
+        return getElementWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementOwnText,
+                searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                                      String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElementWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementTagName,
+                    anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                            String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementTagName,
+                anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsBestEffort(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                      String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElementWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                            String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                                                String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementOwnText,
+                    searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                                      String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementOwnText,
+                searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                                                String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementTagName,
+                    anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                                      String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementTagName,
+                anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                                String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                      String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public Element getElementWithTwoAnchorsBestEffort(Document document, ElementInfo parentAnchorElementInfo,
+                                                      ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo,
+                    searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public Element getElementWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo,
+                                            ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo,
+                searchCssQuery, false);
+    }
+
+    public Element getElementBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        return getElementBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Element getElement(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElement(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Element getElementBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundElementsException
+    {
+        try
+        {
+            return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null;}
+    }
+
+    public Element getElement(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Element getElementBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null;}
+    }
+
+    public Element getElement(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Element getElement(Element anchorElement, Elements searchElements)
+            throws AmbiguousFoundElementsException
+    {
+        return getElement(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
+    }
+
+    public Elements getElementsBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e){ return new Elements();}
+    }
+
+    public Elements getElements(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException, AmbiguousAnchorElementsException
+    {
+        return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, false);
+    }
+
+    public Elements getElementsBestEffort(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e){ return new Elements(); }
+    }
+
+    public Elements getElements(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
+            throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Elements getElementsBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
+    {
+        try
+        {
+            return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e){}
+
+        return new Elements();
+    }
+
+    public Elements getElements(Document document, Elements anchorElements, ElementInfo searchElementInfo)
+            throws AmbiguousAnchorElementsException
+    {
+        return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Elements getElementsBestEffort(Elements anchorElements, Elements searchElements)
+    {
+        try
+        {
+            return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e){}
+
+        return new Elements();
+    }
+
+    public Elements getElements(Elements anchorElements, Elements searchElements)
+            throws AmbiguousAnchorElementsException
+    {
+        return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Elements getElements(Element anchorElement, Elements searchElements)
+    {
+        return getElements(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
+    }
+
+    public Elements getElementsBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
+    {
+        return getElementsBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Elements getElements(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws  AmbiguousAnchorElementsException
+    {
+        return getElements(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Elements getElementsBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        try
+        {
+            return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e){}
+
+        return new Elements();
+    }
+
+    public Elements getElements(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException
+    {
+        return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public Elements getElementsByTagNameContainingOwnTextIgnoreCase(Document document, String tagName, String pattern)
+    {
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, new Condition(true, true, false));
+    }
+
+    public Elements getElementsByTagNameContainingOwnText(Document document, String tagName, String pattern)
+    {
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern,
+                new Condition(false, true, false));
+    }
+
+    public Elements getElementsByTagNameMatchingOwnTextIgnoreCase(Document document, String tagName, String pattern)
+    {
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern,
+                new Condition(true, false, false));
+    }
+
+    public Elements getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern)
+    {
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, new Condition());
+    }
+
+    public Elements getElementsContainingOwnTextIgnoreCase(Document document, String pattern)
+    {
+        return getElementsMatchingOwnText(document, pattern, new Condition(true, true, false));
+    }
+
+    public Elements getElementsContainingOwnText(Document document, String pattern)
+    {
+        return getElementsMatchingOwnText(document, pattern,
+                new Condition(false, true, false));
+    }
+
+    public Elements getElementsMatchingOwnTextIgnoreCase(Document document, String pattern)
+    {
+        return getElementsMatchingOwnText(document, pattern, new Condition(true, false, false));
+    }
+
+    public Elements getElementsMatchingOwnText(Document document, String pattern)
+    {
+        return getElementsMatchingOwnText(document, pattern, new Condition());
+    }
+
+    private Elements filterByPattern(Elements elements, String pattern, Condition condition)
+    {
+        Elements filtered = new Elements();
+
+        if(hasItem(elements))
+        {
+            for (Element item : elements)
+            {
+                if(matchElementOwnText(item, pattern, condition))
+                {
+                    filtered.add(item);
+                }
+            }
+        }
+
+        return filtered;
+    }
+
+    private WebElement getWebElementWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo, ElementInfo anchorElementInfo, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        String xpath;
         Document document = getActiveDocument(driver);
 
         if(document == null)
@@ -612,212 +487,344 @@ public class DomUtil
             return null;
         }
 
-        return getXPath(document, anchorElementInfo, searchCssQuery);
-    }
-
-    /**
-     * get xpath of the element in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementOwnText own text of a html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath string based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no xpath found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundXPathsException when more than one search xpaths are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public String getXPath(
-            Document document,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        return getXPath(document, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    /**
-     * get xpath of the element in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementTagName html anchor tag
-     * @param anchorElementOwnText own text of the html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath string based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no xpath found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundXPathsException when more than one search xpaths are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public String getXPath(
-            Document document,
-            String anchorElementTagName,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        List<String> xpaths = getXPaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-
-        if(xpaths.size() > 1)
+        try
         {
-            throw new AmbiguousFoundXPathsException("More than one xpaths found");
+            xpath = getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, bestEffort);
+        }
+        catch(AmbiguousFoundXpathsException e)
+        {
+            throw new AmbiguousFoundWebElementsException(ambiguousFoundWebElementMessage);
         }
 
-        return hasItem(xpaths) ? xpaths.get(0) : null;
+        return xpath == null ? null : findWebElement(driver, xpath);
     }
 
-    /**
-     * get xpath of the element in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementInfo information about anchor element.
-     *                          The anchor element is an unique html element closest to the web element to search.
-     *                          The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath string based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no xpath found by the provided searchCssQuery
-     * @exception AnchorIndexIfMultipleFoundOutOfBoundException when the indexIfMultipleFound property of @anchorElementInfo is out of bound
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundXPathsException when more than one search xpaths are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public String getXPath(
-            Document document,
-            ElementInfo anchorElementInfo,
-            String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    private WebElement getWebElement(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        List<String> xpaths = getXPaths(document, anchorElementInfo, searchCssQuery);
-
-        if(xpaths.size() > 1)
+        try
         {
-            throw new AmbiguousFoundXPathsException("More than one xpaths found");
+            return getWebElement(driver, new ElementInfo(anchorElementTagName, anchorElementOwnText),  new ElementInfo(searchCssQuery), searchMethod, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e) { return null; }
+    }
+
+    private WebElement getWebElement(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        String xpath;
+        Document document = getActiveDocument(driver);
+
+        if(document == null)
+        {
+            return null;
         }
 
-        return hasItem(xpaths) ? xpaths.get(0) : null;
-    }
-
-    /**
-     * get xpath of the element in jsoup document closest to anchor element
-     *
-     * @param anchorElement unique jsoup element in DOM document.
-     *                      The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchElements possible jsoup element candidates to search from
-     * @return xpath string based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no xpath found
-     * @exception AmbiguousFoundXPathsException when more than one search xpaths are found.
-     *                                          This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public String getXPath(Element anchorElement, Elements searchElements)
-            throws AmbiguousFoundXPathsException
-    {
-        List<String> xpaths = getXPaths(anchorElement, searchElements);
-
-        if(xpaths.size() > 1)
+        try
         {
-            throw new AmbiguousFoundXPathsException("More than one xpaths found");
+            xpath = getXpath(document, anchorElementInfo, searchElementInfo, searchMethod, bestEffort);
+        }
+        catch(AmbiguousFoundXpathsException e)
+        {
+            throw new AmbiguousFoundWebElementsException(ambiguousFoundWebElementMessage);
         }
 
-        return hasItem(xpaths) ? xpaths.get(0) : null;
+        return xpath == null ? null : findWebElement(driver, xpath);
     }
 
-    /**
-     * get xpath list of the elements in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementOwnText own text of a html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, their xpaths are returned.
-     *         Empty list if no xpath found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<String> getXPaths(
-            Document document,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    private WebElement findWebElement(WebDriver driver, String xpath) throws AmbiguousFoundWebElementsException
     {
-        return getXPaths(document, null, anchorElementOwnText, searchCssQuery);
+        int pollingEveryInMs = timeoutInMs/10;
+        List<WebElement> foundWebElements = findWebElements(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+
+        if(hasItem(foundWebElements))
+        {
+            if(foundWebElements.size() > 1)
+            {
+                throw new AmbiguousFoundWebElementsException(ambiguousFoundWebElementMessage);
+            }
+
+            return findWebElement(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+        }
+
+        return null;
     }
 
-    /**
-     * get xpath list of the elements in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementInfo information about the anchor element.
-     *                          The anchor element is an unique html element closest to the web element to search.
-     *                          The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, their xpaths are returned.
-     *         Empty list if no xpath found by the provided searchCssQuery
-     * @exception AnchorIndexIfMultipleFoundOutOfBoundException when the indexIfMultipleFound property of @anchorElementInfo is out of bound
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<String> getXPaths(
-            Document document,
-            ElementInfo anchorElementInfo,
-            String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    private List<WebElement> findWebElements(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
     {
-        List<Element> anchorElements = getElements(document, anchorElementInfo);
-        List<Element> activeAnchorElements = getActiveAnchorElements(anchorElementInfo, anchorElements);
-        return getXPaths(document, activeAnchorElements, searchCssQuery);
+        Wait<WebDriver> wait = new FluentWait<>(driver)
+                .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
+                .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
+                .ignoring(NoSuchElementException.class);
+
+        return wait.until(d -> d.findElements(locator));
     }
 
-    /**
-     * get xpath list of the elements in jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementTagName html anchor tag
-     * @param anchorElementOwnText own text of the html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return xpath list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, their xpaths are returned.
-     *         Empty list if no xpath found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<String> getXPaths(
-            Document document,
-            String anchorElementTagName,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    private WebElement findWebElement(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
     {
-        List<Element> anchorElements = getElements(document, anchorElementTagName, anchorElementOwnText);
-        return getXPaths(document, anchorElements, searchCssQuery);
+        Wait<WebDriver> wait = new FluentWait<>(driver)
+                .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
+                .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
+                .ignoring(NoSuchElementException.class);
+
+        return wait.until(d -> d.findElement(locator));
     }
 
-    /**
-     * get xpath list of the elements closest to anchor element
-     *
-     * @param anchorElement unique jsoup element in DOM document.
-     *                      The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchElements possible jsoup element candidates to search from
-     * @return xpath list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, their xpaths are returned.
-     *         Empty list if no xpath found
-     */
-    public List<String> getXPaths(Element anchorElement, Elements searchElements)
+    private String getXpathWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                             String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathWithTwoAnchors(document, parentAnchorElementOwnText, null,
+                anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private String getXpathWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                             String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathWithTwoAnchors(document,null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private String getXpathWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText, String anchorElementTagName,
+                                             String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        String xpath = getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+
+        if (xpath == null)
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+
+            try
+            {
+                xpath = getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, bestEffort);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){ return null; }
+        }
+
+        return xpath;
+    }
+
+    private String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                                       String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, null,
+                anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                                       String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathWithTwoAnchorsExactMatch(document, null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                    String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        try
+        {
+            return getXpathWithTwoAnchors(document,
+                    new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
+                    new ElementInfo(anchorElementTagName, anchorElementOwnText),
+                    searchCssQuery, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e) { return null; }
+    }
+
+    private String getXpathWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo, ElementInfo anchorElementInfo, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements searchElements = document.select(searchCssQuery);
+
+        if(hasNoItem(searchElements))
+        {
+            return null;
+        }
+
+        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
+
+        if(hasItem(anchorElementsByLink))
+        {
+            Elements activeAnchorElementsByLink = getActiveAnchorElements(anchorElementsByLink, anchorElementInfo);
+            int activeAnchorElementsByLinkCount = activeAnchorElementsByLink.size();
+
+            if(activeAnchorElementsByLinkCount > 1 && !bestEffort)
+            {
+                throw new AmbiguousAnchorElementsException(String.format(ambiguousAnchorMessage, activeAnchorElementsByLinkCount));
+            }
+
+            return getXpath(activeAnchorElementsByLink, searchElements, SearchMethod.ByDistance, bestEffort);
+        }
+        else
+        {
+            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink, bestEffort);
+
+            if(hasItem(elementsByLink))
+            {
+                Elements anchorElements = getElementsByTagNameMatchingOwnText(
+                        document,
+                        anchorElementInfo.tagName,
+                        anchorElementInfo.ownText,
+                        anchorElementInfo.condition);
+
+                int currentSearchDepth = searchDepth;
+                searchDepth = searchDepth * 5;
+                Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
+                searchDepth = currentSearchDepth;
+                return getXpath(document, filteredAnchors, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, bestEffort);
+            }
+            else
+            {
+                Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByDistance, bestEffort);
+                return getXpath(document, closestAnchorElements, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, bestEffort);
+            }
+        }
+    }
+
+    private String getXpath(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        List<String> xpaths = getXpaths(document,anchorElementTagName,anchorElementOwnText, searchCssQuery, searchMethod, bestEffort);
+        int xpathCount = xpaths.size();
+
+        if(xpathCount > 1)
+        {
+            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+        }
+
+        return hasNoItem(xpaths) ? null : xpaths.get(0);
+    }
+
+    private String getXpath(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
+            throws AmbiguousFoundXpathsException
+    {
+        List<String> xpaths = getXpaths(anchorElement, searchElements, searchMethod);
+        int xpathCount = xpaths.size();
+
+        if(xpathCount > 1)
+        {
+            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+        }
+
+        return hasNoItem(xpaths) ? null : xpaths.get(0);
+    }
+
+    private String getXpath(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        List<String> xpaths = getXpaths(anchorElements, searchElements, searchMethod, bestEffort);
+        int xpathCount = xpaths.size();
+
+        if(xpathCount > 1)
+        {
+            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+        }
+
+        return hasNoItem(xpaths) ? null : xpaths.get(0);
+    }
+
+    private String getXpath(Document document, Elements anchorElements, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        List<String> xpaths = getXpaths(document, anchorElements, searchElementInfo, searchMethod, bestEffort);
+        int xpathCount = xpaths.size();
+
+        if(xpathCount > 1)
+        {
+            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+        }
+
+        return hasNoItem(xpaths) ? null : xpaths.get(0);
+    }
+
+    private String getXpath(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        List<String> xpaths = getXpaths(document, anchorElementInfo, searchElementInfo, searchMethod, bestEffort);
+        int xpathCount = xpaths.size();
+
+        if(xpathCount > 1)
+        {
+            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+        }
+
+        return hasNoItem(xpaths) ? null : xpaths.get(0);
+    }
+
+    public List<String> getXpaths(Document document, String anchorElementTagName, String anchorElementOwnText,
+                                  String searchCssQuery)
+            throws AmbiguousAnchorElementsException
+    {
+        return getXpaths(document, anchorElementTagName, anchorElementOwnText,
+                searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    private List<String> getXpaths(Document document, String anchorElementTagName, String anchorElementOwnText,
+                                   String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
+    {
+        try
+        {
+            return getXpaths(document, new ElementInfo(anchorElementTagName, anchorElementOwnText), new ElementInfo(searchCssQuery),searchMethod, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){ return new ArrayList<>(); }
+    }
+
+    private List<String> getXpaths(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements anchorElements = getElements(document, anchorElementInfo);
+        Elements activeAnchorElements = getActiveAnchorElements(anchorElements, anchorElementInfo);
+        Elements searchElements = getElements(document, searchElementInfo);
+        return getXpaths(activeAnchorElements, searchElements, searchMethod, bestEffort);
+    }
+
+    private List<String> getXpaths(Document document, Elements anchorElements, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
+    {
+        Elements searchElements = getElements(document, searchElementInfo);
+        return getXpaths(anchorElements, searchElements, searchMethod, bestEffort);
+    }
+
+    private List<String> getXpaths(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
+    {
+        List<String> result = new ArrayList<>();
+
+        if(hasItem(anchorElements) && hasItem(searchElements))
+        {
+            int anchorElementCount = anchorElements.size();
+
+            if(anchorElementCount > 1 && !bestEffort)
+            {
+                throw new AmbiguousAnchorElementsException(String.format(ambiguousAnchorMessage, anchorElementCount));
+            }
+
+            for (Element item : anchorElements)
+            {
+                result = getXpaths(item, searchElements, searchMethod);
+
+                if(hasItem(result))
+                {
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private List<String> getXpaths(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
     {
         List<String> xpathList = new ArrayList<>();
-        List<ElementRecord> finalFoundRecords =
-            getElementRecordsByLinkAndShortestDistance(anchorElement, searchElements);
+        List<ElementRecord> finalFoundRecords = getElementRecords(anchorElement, searchElements, searchMethod);
 
         if(hasNoItem(finalFoundRecords))
         {
@@ -826,7 +833,7 @@ public class DomUtil
 
         for(ElementRecord record : finalFoundRecords)
         {
-            String xpath = buildXpath(record, anchorElement);
+            String xpath = buildXpath(anchorElement, record);
 
             if(xpath != null)
             {
@@ -837,382 +844,38 @@ public class DomUtil
         return new ArrayList<>(new HashSet<>(xpathList));
     }
 
-    /**
-     * get jsoup element from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementOwnText own text of a html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public Element getClosestElement(
-            Document document,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    private String buildXpath(Element anchorElement, ElementRecord record)
     {
-        return getClosestElement(document, null, anchorElementOwnText, searchCssQuery);
-    }
+        String xpath = null;
+        Element rootElement = record.rootElement;
+        Element foundElement = record.element;
+        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, foundElement);
+        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, anchorElement);
+        String rootElementTagName = rootElement.tagName();
+        String anchorElementOwnText = anchorElement.ownText();
 
-    /**
-     * get jsoup element from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementTagName html anchor tag
-     * @param anchorElementOwnText own text of the html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public Element getClosestElement(
-            Document document,
-            String anchorElementTagName,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundElementsException
-    {
-        List<Element> foundElement = getClosestElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery);
-
-        if(foundElement.size() > 1)
+        if(xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
         {
-            throw new AmbiguousFoundElementsException("More than one elements found");
-        }
-
-        return hasItem(foundElement) ? foundElement.get(0) : null;
-    }
-
-    /**
-     * get jsoup element from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementInfo information about the anchor element.
-     *                          The anchor element is an unique html element closest to the web element to search.
-     *                          The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found by the provided searchCssQuery
-     * @exception AnchorIndexIfMultipleFoundOutOfBoundException when the indexIfMultipleFound property of @anchorElementInfo is out of bound
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     * @exception AmbiguousFoundElementsException when more than one search elements are found by @searchCssQuery.
-     *                                               This occurs when the found elements having the same DOM distances to the anchor element
-     */
-    public Element getClosestElement(
-            Document document,
-            ElementInfo anchorElementInfo,
-            String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundElementsException
-    {
-        List<Element> foundElement = getClosestElements(document, anchorElementInfo, searchCssQuery);
-
-        if(foundElement.size() > 1)
-        {
-            throw new AmbiguousFoundElementsException("More than one elements found");
-        }
-
-        return hasItem(foundElement) ? foundElement.get(0) : null;
-    }
-
-    /**
-     * get jsoup element closest to anchor element
-     *
-     * @param anchorElement unique jsoup element in DOM document.
-     *                      The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchElements possible jsoup element candidates to search from
-     * @return jsoup element based on the minimal DOM distance from possible found element to anchor element.
-     *         Null if no element found
-     */
-    public Element getClosestElement(Element anchorElement, Elements searchElements)
-            throws AmbiguousFoundElementsException
-    {
-        List<Element> foundElement = getClosestElements(anchorElement, searchElements);
-
-        if(foundElement.size() > 1)
-        {
-            throw new AmbiguousFoundElementsException("More than one elements found");
-        }
-
-        return hasItem(foundElement) ? foundElement.get(0) : null;
-    }
-
-    /**
-     * get jsoup element list from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementOwnText own text of a html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup element list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, they are returned.
-     *         Empty list if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<Element> getClosestElements(
-            Document document,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
-    {
-        return getClosestElements(document, null, anchorElementOwnText, searchCssQuery);
-    }
-
-    /**
-     * get jsoup element list from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementTagName html anchor tag
-     * @param anchorElementOwnText own text of the html anchor tag, excluding spaces and tabs.
-     *                             The anchor element is an unique html element closest to the web element to search.
-     *                             The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup element list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, they are returned.
-     *         Empty list if no element found by the provided searchCssQuery
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<Element> getClosestElements(
-            Document document,
-            String anchorElementTagName,
-            String anchorElementOwnText,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
-    {
-        List<Element> anchorElements = getElements(document, anchorElementTagName, anchorElementOwnText);
-        return getClosestElements(document, anchorElements, searchCssQuery);
-    }
-
-    /**
-     * get jsoup element list from jsoup document closest to anchor element
-     *
-     * @param document jsoup Document
-     * @param anchorElementInfo information about the anchor element.
-     *                          The anchor element is an unique html element closest to the web element to search.
-     *                          The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchCssQuery css query of the element to search
-     * @return jsoup element list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, they are returned.
-     *         Empty list if no element found by the provided searchCssQuery
-     * @exception AnchorIndexIfMultipleFoundOutOfBoundException when the indexIfMultipleFound property of @anchorElementInfo is out of bound
-     * @exception NoAnchorElementFoundException when no anchor element is found by @anchorElementOwnText
-     * @exception AmbiguousAnchorElementsException when more than one anchor elements are found by @anchorElementOwnText
-     */
-    public List<Element> getClosestElements(
-            Document document,
-            ElementInfo anchorElementInfo,
-            String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
-    {
-        List<Element> anchorElements = getElements(document, anchorElementInfo);
-        List<Element> activeAnchorElements = getActiveAnchorElements(anchorElementInfo, anchorElements);
-        return getClosestElements(document, activeAnchorElements, searchCssQuery);
-    }
-
-    /**
-     * get jsoup element list closest to anchor element
-     *
-     * @param anchorElement unique jsoup element in DOM document.
-     *                      The anchor element should be easy to be located on a web page with unique text such as a label
-     * @param searchElements possible jsoup element candidates to search from
-     * @return jsoup element list based on the minimal DOM distance from possible found elements to anchor element.
-     *         When there are more than one elements having the same minimal DOM distance to the anchor element, they are returned.
-     *         Empty list if no element found
-     */
-    public List<Element> getClosestElements(Element anchorElement, Elements searchElements)
-    {
-        return getElements(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
-    }
-
-    /**
-     * get jsoup element list from jsoup document by tag name where the tag own text contains a pattern with case insensitive
-     *
-     * @param document DOM document
-     * @param tagName tag name, case insensitive
-     * @param pattern a string which the tag own text should contain, case insensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsByTagNameContainingOwnTextIgnoreCase(Document document, String tagName, String pattern)
-    {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, false, false, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document by tag name where the tag own text contains a pattern with case sensitive
-     *
-     * @param document DOM document
-     * @param tagName tag name, case insensitive
-     * @param pattern a string which the tag own text should contain, case sensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsByTagNameContainingOwnText(Document document, String tagName, String pattern)
-    {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, true, false, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document by tag name where the tag own text matches a pattern with case insensitive
-     *
-     * @param document DOM document
-     * @param tagName tag name, case insensitive
-     * @param pattern a string which the tag own text should match, case insensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsByTagNameMatchingOwnTextIgnoreCase(Document document, String tagName, String pattern)
-    {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, false, true, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document by tag name where the tag own text matches a pattern with case sensitive
-     *
-     * @param document DOM document
-     * @param tagName tag name, case insensitive
-     * @param pattern a string which the tag own text should match, case sensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern)
-    {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, true, true, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document where the tag own text contains a pattern with case insensitive
-     *
-     * @param document DOM document
-     * @param pattern a string which the tag own text should contain, case insensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsContainingOwnTextIgnoreCase(Document document, String pattern)
-    {
-        return getElementsMatchingOwnText(document, pattern, false, false, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document where the tag own text contains a pattern with case sensitive
-     *
-     * @param document DOM document
-     * @param pattern a string which the tag own text should contain, case sensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsContainingOwnText(Document document, String pattern)
-    {
-        return getElementsMatchingOwnText(document, pattern, true, false, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document where the tag own text matches a pattern with case insensitive
-     *
-     * @param document DOM document
-     * @param pattern a string which the tag own text should match, case insensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsMatchingOwnTextIgnoreCase(Document document, String pattern)
-    {
-        return getElementsMatchingOwnText(document, pattern, false, true, true);
-    }
-
-    /**
-     * get jsoup element list from jsoup document where the tag own text matches a pattern with case sensitive
-     *
-     * @param document DOM document
-     * @param pattern a string which the tag own text should match, case sensitive. Spaces and tabs are ignored
-     * @return jsoup element list
-     */
-    public List<Element> getElementsMatchingOwnText(Document document, String pattern)
-    {
-        return getElementsMatchingOwnText(document, pattern, true, true, true);
-    }
-
-    private List<Element> filterByPattern(List<Element> elements, String pattern, Condition condition)
-    {
-        List<Element> filtered = new ArrayList<>();
-
-        if(hasItem(elements))
-        {
-            for (Element item : elements)
+            if(xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
-                if(matchElementOwnText(
-                        item,
-                        pattern,
-                        !condition.whereIgnoreCaseForOwnText,
-                        !condition.whereOwnTextContainingPattern,
-                        !condition.whereIncludingTabsAndSpacesForOwnText))
-                {
-                    filtered.add(item);
-                }
+                xpath =  String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+            }
+            else if(xpathPartFromRootElementToAnchorElement == "")
+            {
+                xpath =  String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
+            }
+            else if(xpathPartFromRootElementToFoundElement == "")
+            {
+                xpath =  String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement, rootElementTagName, anchorElementOwnText);
+            }
+            else
+            {
+                xpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                        rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
             }
         }
 
-        return filtered;
-    }
-
-    private WebElement findWebElement(WebDriver driver, Document document, ElementInfo anchorElementInfo, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        Elements anchorElements = toElements(getElements(document, anchorElementInfo));
-        return findWebElement(driver, document, anchorElements, searchCssQuery);
-    }
-
-    private WebElement findWebElement(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
-    {
-        return findWebElementObject(driver, document, anchorElements, searchCssQuery);
-    }
-
-    private String findXpath(WebDriver driver, Elements anchorElements, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
-    {
-        Document document = getActiveDocument(driver);
-        return findXpath(document, anchorElements, searchCssQuery);
-    }
-
-    private List<String> getXPaths(
-            Document document,
-            List<Element> anchorElements,
-            String searchCssQuery)
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
-    {
-        List<String> xpathList = new ArrayList<>();
-
-        if(document == null)
-        {
-            return xpathList;
-        }
-
-        if(hasNoItem(anchorElements))
-        {
-            throw new NoAnchorElementFoundException("No anchor element found");
-        }
-
-        if(anchorElements.size() > 1)
-        {
-            throw new AmbiguousAnchorElementsException("More than one anchor elements found");
-        }
-
-        Element anchorElement = anchorElements.get(0);
-        Elements searchElements = document.select(searchCssQuery);
-
-        if(hasItem(searchElements) && anchorElement != null)
-        {
-            xpathList = getXPaths(anchorElement, searchElements);
-        }
-
-        return xpathList;
+        return xpath;
     }
 
     private String buildXpathPartBetweenRootAndLeafExcludingRoot(Element root, Element leaf)
@@ -1247,175 +910,222 @@ public class DomUtil
         return xpathBuilder.toString();
     }
 
-    private String buildXpath(ElementRecord record, Element anchorElement)
+    private Element getElementWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                             String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        String xpath = null;
-        Element rootElement = record.rootElement;
-        Element foundElement = record.element;
-        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, foundElement);
-        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, anchorElement);
-        String rootElementTagName = rootElement.tagName();
-        String anchorElementOwnText = anchorElement.ownText();
-
-        if(xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
-        {
-            if(xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath =  String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
-            }
-            else if(xpathPartFromRootElementToAnchorElement == "")
-            {
-                xpath =  String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
-            }
-            else if(xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath =  String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement, rootElementTagName, anchorElementOwnText);
-            }
-            else
-            {
-                xpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
-                                      rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText, xpathPartFromRootElementToFoundElement);
-            }
-        }
-
-        return xpath;
+        return getElementWithTwoAnchors(document, parentAnchorElementOwnText, null,
+                anchorElementOwnText, searchCssQuery, bestEffort);
     }
 
-    private IFindObjectFunction<FindFuncParam, String> findXpathFunc = this::findXpath;
-    private IFindObjectFunction<FindFuncParam, WebElement> findWebElementFunc =  this::findWebElement;
-
-    private String findXpath(Document document, Elements anchorElements, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException
+    private Element getElementWithTwoAnchors(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                             String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        try
-        {
-            return findWebObject(null, document, anchorElements, searchCssQuery, findXpathFunc);
-        }
-        catch(AmbiguousFoundWebElementsException e)
-        {}
-
-        return null;
+        return getElementWithTwoAnchors(document,null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
     }
 
-    private WebElement findWebElementObject(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    private Element getElementWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                             String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        Element element = getElementWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+
+        if (element == null)
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+
+            try
+            {
+                element = getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, bestEffort);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){ return null;}
+        }
+
+        return element;
+    }
+
+    private Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementOwnText,
+                                                       String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, null,
+                anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText, String anchorElementTagName,
+                                                       String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
+    {
+        return getElementWithTwoAnchorsExactMatch(document, null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+    }
+
+    private Element getElementWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                       String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
        try
        {
-           return findWebObject(driver, document, anchorElements, searchCssQuery, findWebElementFunc);
+           return getElementWithTwoAnchors(document,
+                   new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
+                   new ElementInfo(anchorElementTagName, anchorElementOwnText),
+                   searchCssQuery, bestEffort);
        }
-       catch(AmbiguousFoundXPathsException e)
-       {
-           throw new AmbiguousFoundWebElementsException("More than one web element found");
-       }
+       catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+
+       return null;
     }
 
-    private WebElement findWebElement(FindFuncParam params) throws AmbiguousFoundXPathsException, AmbiguousFoundWebElementsException
+    private Element getElementWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo, ElementInfo anchorElementInfo,
+                                             String searchCssQuery, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        String xpath = getXPath(params.anchorElement, params.searchElements);
-        return findWebElement(params.driver, xpath);
-    }
+        Elements searchElements = document.select(searchCssQuery);
 
-    private String findXpath(FindFuncParam params) throws AmbiguousFoundXPathsException
-    {
-        return getXPath(params.anchorElement, params.searchElements);
-    }
-
-    private <T> T findWebObject(WebDriver driver, Document document, Elements anchorElements, String searchCssQuery, IFindObjectFunction function)
-    throws AmbiguousAnchorElementsException, AmbiguousFoundXPathsException, AmbiguousFoundWebElementsException
-    {
-        if(document == null)
+        if(hasNoItem(searchElements))
         {
             return null;
         }
 
-        Elements searchElements = document.select(searchCssQuery);
+        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
 
-        if(hasItem(anchorElements) && hasItem(searchElements))
+        if(hasItem(anchorElementsByLink))
         {
-            AmbiguousFoundXPathsException lastAmbiguousFoundXPathsException = null;
-            AmbiguousFoundWebElementsException lastAmbiguousFoundWebElementsException = null;
+            Elements activeAnchorElementsByLink = getActiveAnchorElements(anchorElementsByLink, anchorElementInfo);
+            int activeAnchorElementsByLinkCount = activeAnchorElementsByLink.size();
 
-            if(returnErrorOnMultipleAnchorsFound && anchorElements.size() > 1)
+            if(activeAnchorElementsByLinkCount > 1 && !bestEffort)
             {
-                throw new AmbiguousAnchorElementsException("More than one anchor elements found");
+                throw new AmbiguousAnchorElementsException(String.format(ambiguousAnchorMessage, activeAnchorElementsByLinkCount));
             }
 
-            for (Element item : anchorElements)
-            {
-                FindFuncParam functionParams = new FindFuncParam(driver, item, searchElements);
+            return getElement(anchorElementsByLink, searchElements, SearchMethod.ByDistance, bestEffort);
+        }
+        else
+        {
+            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink, bestEffort);
 
-                try
-                {
-                    return (T)function.apply(functionParams);
-                }
-                catch(AmbiguousFoundXPathsException e1)
-                {
-                    lastAmbiguousFoundXPathsException = e1;
-                }
-                catch(AmbiguousFoundWebElementsException e2)
-                {
-                    lastAmbiguousFoundWebElementsException = e2;
-                }
+            if(hasItem(elementsByLink))
+            {
+                Elements anchorElements = getElementsByTagNameMatchingOwnText(
+                        document,
+                        anchorElementInfo.tagName,
+                        anchorElementInfo.ownText,
+                        anchorElementInfo.condition);
+
+                int currentSearchDepth = searchDepth;
+                searchDepth = searchDepth * 5;
+                Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
+                searchDepth = currentSearchDepth;
+                return getElement(document, filteredAnchors, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, bestEffort);
             }
-
-            if(lastAmbiguousFoundXPathsException != null)
+            else
             {
-                throw lastAmbiguousFoundXPathsException;
-            }
-
-            if(lastAmbiguousFoundWebElementsException != null)
-            {
-                throw lastAmbiguousFoundWebElementsException;
+                Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByDistance, bestEffort);
+                return getElement(document, closestAnchorElements, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, bestEffort);
             }
         }
-
-        return null;
     }
 
-    private WebElement findWebElement(WebDriver driver, String xpath) throws AmbiguousFoundWebElementsException
+    private Element getElement(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        int timeoutInMs = 2000;
-        int pollingEveryInMs = timeoutInMs/10;
-        List<WebElement> foundWebElements = findWebElements(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+        Elements elements = getElements(document,anchorElementTagName,anchorElementOwnText, searchCssQuery, searchMethod, bestEffort);
+        int elementCount = elements.size();
 
-        if(hasItem(foundWebElements))
+        if(elementCount > 1)
         {
-            if(foundWebElements.size() > 1 && returnErrorOnMultipleWebElementsFound)
-            {
-                throw new AmbiguousFoundWebElementsException("More than one web elements found");
-            }
-
-            return findWebElement(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+            throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return null;
+        return hasNoItem(elements) ? null : elements.get(0);
     }
 
-    private List<WebElement> findWebElements(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
+    private Element getElement(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
+            throws AmbiguousFoundElementsException
     {
-        Wait<WebDriver> wait = new FluentWait<>(driver)
-            .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
-            .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
-            .ignoring(NoSuchElementException.class);
+        Elements elements = getElements(anchorElement, searchElements, searchMethod);
+        int elementCount = elements.size();
 
-        return wait.until(d -> d.findElements(locator));
+        if(elementCount > 1)
+        {
+            throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
+        }
+
+        return hasNoItem(elements) ? null : elements.get(0);
     }
 
-    private WebElement findWebElement(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)
+    private Element getElement(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        Wait<WebDriver> wait = new FluentWait<>(driver)
-            .withTimeout(timeoutInMs, TimeUnit.MILLISECONDS)
-            .pollingEvery(pollingEveryInMs, TimeUnit.MILLISECONDS)
-            .ignoring(NoSuchElementException.class);
+        Elements elements = getElements(anchorElements, searchElements, searchMethod, bestEffort);
+        int elementCount = elements.size();
 
-        return wait.until(d -> d.findElement(locator));
+        if(elementCount > 1)
+        {
+            throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
+        }
+
+        return hasNoItem(elements) ? null : elements.get(0);
     }
 
-    private List<Element> getActiveAnchorElements(ElementInfo anchorElementInfo, List<Element> anchorElements)
-        throws AnchorIndexIfMultipleFoundOutOfBoundException
+    private Element getElement(Document document, Elements anchorElements, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        List<Element> activeAnchorElements = new ArrayList<>();
+        Elements elements = getElements(document, anchorElements, searchElementInfo, searchMethod, bestEffort);
+        int elementCount = elements.size();
+
+        if(elementCount > 1)
+        {
+            throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
+        }
+
+        return hasNoItem(elements) ? null : elements.get(0);
+    }
+
+    private Element getElement(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements elements = getElements(document, anchorElementInfo, searchElementInfo, searchMethod, bestEffort);
+        int elementCount = elements.size();
+
+        if(elementCount > 1)
+        {
+            throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
+        }
+
+        return hasNoItem(elements) ? null : elements.get(0);
+    }
+
+    private Elements getElements(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
+    {
+        try
+        {
+            return getElements(document, new ElementInfo(anchorElementTagName, anchorElementOwnText), new ElementInfo(searchCssQuery),searchMethod, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+
+        return new Elements();
+    }
+
+    private Elements getElements(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+        throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements anchorElements = getElements(document, anchorElementInfo);
+        Elements activeAnchorElements = getActiveAnchorElements(anchorElements, anchorElementInfo);
+        Elements searchElements = getElements(document, searchElementInfo);
+        return getElements(activeAnchorElements, searchElements, searchMethod, bestEffort);
+    }
+
+    private Elements getActiveAnchorElements(Elements anchorElements, ElementInfo anchorElementInfo)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements activeAnchorElements = new Elements();
 
         if(anchorElementInfo != null)
         {
@@ -1429,25 +1139,32 @@ public class DomUtil
             }
             else
             {
-                throw new AnchorIndexIfMultipleFoundOutOfBoundException("indexIfMultipleFound property of the AnchorElementInfo provided is out of bound");
+                throw new AnchorIndexIfMultipleFoundOutOfBoundException(anchorIndexIfMultipleFoundOutOfBoundMessage);
             }
         }
 
         return activeAnchorElements;
     }
 
-    private Elements getElements(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod)
-        throws AmbiguousAnchorElementsException
+    private Elements getElements(Document document, Elements anchorElements, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
     {
-        List<Element> result = new ArrayList<>();
-        List<Element> anchorElements = getElements(document, anchorElementInfo);
-        Elements searchElements = toElements(getElements(document, searchElementInfo));
+        Elements searchElements = getElements(document, searchElementInfo);
+        return getElements(anchorElements, searchElements, searchMethod, bestEffort);
+    }
+
+    private Elements getElements(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException
+    {
+        Elements result = new Elements();
 
         if(hasItem(anchorElements) && hasItem(searchElements))
         {
-            if(returnErrorOnMultipleAnchorsFound && anchorElements.size() > 1)
+            int anchorElementCount = anchorElements.size();
+
+            if(anchorElementCount > 1 && !bestEffort)
             {
-                throw new AmbiguousAnchorElementsException("More than one anchor elements found");
+                throw new AmbiguousAnchorElementsException(String.format(ambiguousAnchorMessage, anchorElementCount));
             }
 
             for (Element item : anchorElements)
@@ -1461,19 +1178,19 @@ public class DomUtil
             }
         }
 
-        return toElements(result);
+        return result;
     }
 
-    private List<Element> getElements(Document document, String elementTagName, String elementOwnText)
+    private Elements getOwnElements(Document document, String elementTagName, String elementOwnText)
     {
         return elementTagName == null
-            ? getElementsMatchingOwnText(document, elementOwnText)
-            : getElementsByTagNameMatchingOwnText(document, elementTagName, elementOwnText);
+            ? getElementsMatchingOwnText(document, elementOwnText, new Condition())
+            : getElementsByTagNameMatchingOwnText(document, elementTagName, elementOwnText, new Condition());
     }
 
-    private List<Element> getElements(Document document, ElementInfo elementInfo)
+    private Elements getElements(Document document, ElementInfo elementInfo)
     {
-        List<Element> elements = new ArrayList<>();
+        Elements elements = new Elements();
 
         if(elementInfo == null)
         {
@@ -1482,22 +1199,11 @@ public class DomUtil
 
         if(elementInfo.tagName == null && elementInfo.ownText != null)
         {
-            return getElementsMatchingOwnText(
-                document,
-                elementInfo.ownText,
-                !elementInfo.whereIgnoreCaseForOwnText,
-                !elementInfo.whereOwnTextContainingPattern,
-                !elementInfo.whereIncludingTabsAndSpacesForOwnText);
+            return getElementsMatchingOwnText(document, elementInfo.ownText, elementInfo.condition);
         }
         else if (elementInfo.tagName != null && elementInfo.ownText != null)
         {
-            return getElementsByTagNameMatchingOwnText(
-                document,
-                elementInfo.tagName,
-                elementInfo.ownText,
-                !elementInfo.whereIgnoreCaseForOwnText,
-                !elementInfo.whereOwnTextContainingPattern,
-                !elementInfo.whereIncludingTabsAndSpacesForOwnText);
+            return getElementsByTagNameMatchingOwnText(document, elementInfo.tagName, elementInfo.ownText, elementInfo.condition);
         }
         else
         {
@@ -1505,40 +1211,27 @@ public class DomUtil
         }
     }
 
-    private List<Element> getElementsByTagNameMatchingOwnText(Document document,
-                                                              String tagName,
-                                                              String pattern,
-                                                              boolean caseSensitive,
-                                                              boolean exactMatch,
-                                                              boolean ignoreTabsAndSpaces)
+    private Elements getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern, Condition condition)
     {
-        List<Element> elements = getElementsByTagName(document, tagName);
-        return getElementsMatchingOwnText(elements, pattern, caseSensitive, exactMatch, ignoreTabsAndSpaces);
+        Elements elements = getElementsByTagName(document, tagName);
+        return getElementsMatchingOwnText(elements, pattern, condition);
     }
 
-    private List<Element> getElementsMatchingOwnText(Document document,
-                                                     String pattern,
-                                                     boolean caseSensitive,
-                                                     boolean exactMatch,
-                                                     boolean ignoreTabsAndSpaces)
+    private Elements getElementsMatchingOwnText(Document document, String pattern, Condition condition)
     {
-        List<Element> elements = document == null ? new ArrayList<>() : document.getAllElements();
-        return getElementsMatchingOwnText(elements, pattern, caseSensitive, exactMatch, ignoreTabsAndSpaces);
+        Elements elements = document == null ? new Elements() : document.getAllElements();
+        return getElementsMatchingOwnText(elements, pattern, condition);
     }
 
-    private List<Element> getElementsMatchingOwnText(List<Element> elements,
-                                                     String pattern,
-                                                     boolean caseSensitive,
-                                                     boolean exactMatch,
-                                                     boolean ignoreTabsAndSpaces)
+    private Elements getElementsMatchingOwnText(Elements elements, String pattern, Condition condition)
     {
-        List<Element> result = new ArrayList<>();
+        Elements result = new Elements();
 
         if(hasItem(elements))
         {
             for (Element item : elements)
             {
-                if(matchElementOwnText(item, pattern, caseSensitive, exactMatch, ignoreTabsAndSpaces))
+                if(matchElementOwnText(item, pattern, condition))
                 {
                     result.add(item);
                 }
@@ -1548,44 +1241,47 @@ public class DomUtil
         return result;
     }
 
-    private boolean matchElementOwnText(Element element,
-                                        String pattern,
-                                        boolean caseSensitive,
-                                        boolean exactMatch,
-                                        boolean ignoreTabsAndSpaces)
+    private boolean matchElementOwnText(Element element, String pattern, Condition condition)
     {
+        Condition activeCondition = condition;
+
+        if (condition == null)
+        {
+            activeCondition = new Condition();
+        }
+
         if(element == null || element.ownText() == null || pattern == null)
         {
             return false;
         }
 
-        String elementOwnText = ignoreTabsAndSpaces ? element.ownText().replace("\\s+", "") : element.ownText();
-        String patternWithoutSpaces = ignoreTabsAndSpaces ? pattern.replace("\\s+", "") : pattern;
+        String elementOwnText = activeCondition.whereIncludingTabsAndSpacesForOwnText ? element.ownText() : element.ownText().replace("\\s+", "");
+        String patternWithoutSpaces = activeCondition.whereIncludingTabsAndSpacesForOwnText ? pattern : pattern.replace("\\s+", "");
 
-        if(caseSensitive && exactMatch)
+        if(activeCondition.whereIgnoreCaseForOwnText && activeCondition.whereOwnTextContainingPattern)
         {
-            if (elementOwnText.equals(patternWithoutSpaces))
+            if(elementOwnText.toLowerCase().contains(patternWithoutSpaces.toLowerCase()))
             {
                 return true;
             }
         }
-        else if (caseSensitive)
-        {
-            if(elementOwnText.contains(patternWithoutSpaces))
-            {
-                return true;
-            }
-        }
-        else if(exactMatch)
+        else if (activeCondition.whereIgnoreCaseForOwnText)
         {
             if(elementOwnText.equalsIgnoreCase(patternWithoutSpaces))
             {
                 return true;
             }
         }
+        else if(activeCondition.whereOwnTextContainingPattern)
+        {
+            if(elementOwnText.contains(patternWithoutSpaces))
+            {
+                return true;
+            }
+        }
         else
         {
-            if(elementOwnText.toLowerCase().contains(patternWithoutSpaces.toLowerCase()))
+            if (elementOwnText.equals(patternWithoutSpaces))
             {
                 return true;
             }
@@ -1594,164 +1290,70 @@ public class DomUtil
         return false;
     }
 
-    private List<Element> getElementsByTagName(Document document, String tagName)
+    private Elements getElementsByTagName(Document document, String tagName)
     {
-        List<Element> result = new ArrayList<>();
+        Elements result = new Elements();
 
         if(document != null)
         {
-            List<TreeElement> elementTree = getHtmlDocumentElementTree(document);
-
-            for (TreeElement item : elementTree)
-            {
-                String elementTagName = item.element.tagName();
-
-                if(elementTagName != null && tagName != null && elementTagName.trim().equalsIgnoreCase(tagName.trim()))
-                {
-                    result.add(item.element);
-                }
-            }
+            result = document.select(tagName);
         }
 
         return result;
     }
 
-    private List<Element> getClosestElements(
-        Document document,
-        List<Element> anchorElements,
-        String searchCssQuery)
-        throws NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    private Elements getElements(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
     {
-        List<Element> foundElements = new ArrayList<>();
-
-        if(document == null)
-        {
-            return foundElements;
-        }
-
-        if(hasNoItem(anchorElements))
-        {
-            throw new NoAnchorElementFoundException("No anchor element found");
-        }
-
-        if(anchorElements.size() > 1)
-        {
-            throw new AmbiguousAnchorElementsException("More than one anchor elements found");
-        }
-
-        Element anchorElement = anchorElements.get(0);
-        Elements searchElements = document.select(searchCssQuery);
-        List<ElementRecord> foundElementRecords =
-            getElementRecordsByLinkAndShortestDistance(anchorElement, searchElements);
-
-        if(hasItem(searchElements) && hasItem(foundElementRecords))
-        {
-            for(int i = 0; i <searchElements.size(); i++)
-            {
-                for(ElementRecord record : foundElementRecords)
-                {
-                    if(i == record.index)
-                    {
-                        foundElements.add(searchElements.get(i));
-                        break;
-                    }
-                }
-            }
-        }
-
-        return foundElements;
-    }
-
-    private List<Element> getClosestElements(Elements anchorElements, Elements searchElements)
-    {
-        List<ElementRecord> result = new ArrayList<>();
-
-        if(hasItem(anchorElements))
-        {
-            for (Element anchorElement : anchorElements)
-            {
-                List<ElementRecord> currentFound = getElementRecords(anchorElement, searchElements, SearchMethod.ByDistance);
-                result.addAll(currentFound);
-            }
-        }
-
-        List<ElementRecord> finalFoundRecords = getClosestElementRecords(result);
-        return extractElementsFromElementRecords(finalFoundRecords);
-    }
-
-    private List<Element> getElements(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
-    {
-        List<ElementRecord> result = getElementRecords(anchorElement, searchElements, searchMethod);
-        return extractElementsFromElementRecords(result);
-    }
-
-    private List<Element> extractElementsFromElementRecords(List<ElementRecord> elementRecords)
-    {
-        List<Element> elements = new ArrayList<>();
-
-        if(hasItem(elementRecords))
-        {
-            for(ElementRecord record : elementRecords)
-            {
-                elements.add(record.element);
-            }
-        }
-
-        return elements;
-    }
-
-    private List<ElementRecord> getElementRecords(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
-    {
-        List<ElementRecord> result;
+        Elements result;
 
         switch (searchMethod)
         {
             case ByDistance:
-                result = getClosestElementRecords(anchorElement, searchElements);
+                result = getClosestElements(anchorElement, searchElements);
                 break;
             case ByLink:
-                result = getLinkedElementRecords(anchorElement, searchElements);
+                result = getLinkedElements(anchorElement, searchElements);
                 break;
             case ByLinkAndDistance:
-                result = getElementRecordsByLinkAndShortestDistance(anchorElement, searchElements);
+                result = getElementsByLinkAndShortestDistance(anchorElement, searchElements);
                 break;
             default:
-                throw new NotImplementedException();
+                throw new NotImplementedException("Search type not implemented");
         }
 
         return result;
     }
 
-    private List<ElementRecord> getElementRecordsByLinkAndShortestDistance(Element anchorElement, Elements searchElements)
+    private Elements getElementsByLinkAndShortestDistance(Element anchorElement, Elements searchElements)
     {
-        List<ElementRecord> linkedRecords = getLinkedElementRecords(anchorElement, searchElements);
-        List<ElementRecord> result;
+        Elements linkedElements = getLinkedElements(anchorElement, searchElements);
+        Elements result;
 
-        if(hasItem(linkedRecords))
+        if(hasItem(linkedElements))
         {
-            result = linkedRecords.size() == 1
-                ? linkedRecords
-                : getClosestElementRecords(linkedRecords);
+            result = linkedElements.size() == 1
+                    ? linkedElements
+                    : getClosestElements(anchorElement, linkedElements);
         }
         else
         {
-            result = getClosestElementRecords(anchorElement, searchElements);
+            result = getClosestElements(anchorElement, searchElements);
         }
 
         return result;
     }
 
-    private List<ElementRecord> getLinkedElementRecords(Element anchorElement, Elements searchElements)
+    private Elements getClosestElements(Element anchorElement, Elements searchElements)
     {
-        List<ElementRecord> searchElementRecords = getElementRecords(anchorElement, searchElements);
-        return getLinkedElementRecords(searchElementRecords, anchorElement);
+        List<ElementRecord> closestElementRecords = getClosestElementRecords(anchorElement, searchElements);
+        return extractElementsFromElementRecords(closestElementRecords);
     }
 
-    private List<ElementRecord> getLinkedElementRecords(List<ElementRecord> searchElementRecords, Element anchorElement)
+    private Elements getLinkedElements(Element anchorElement, Elements searchElements)
     {
-        List<ElementRecord> result = new ArrayList<>();
+        Elements result = new Elements();
 
-        if (hasItem(searchElementRecords) && anchorElement != null)
+        if (hasItem(searchElements) && anchorElement != null)
         {
             Attribute anchorElementForAttribute = getAttributeByNameContainingPattern(anchorElement, "for");
 
@@ -1759,13 +1361,13 @@ public class DomUtil
             {
                 String anchorElementForAttributeValue = anchorElementForAttribute.getValue();
 
-                for (ElementRecord item : searchElementRecords)
+                for (Element item : searchElements)
                 {
-                    String searchElementId = item.element.attr("id");
-                    String searchElementName = item.element.attr("name");
+                    String searchElementId = item.attr("id");
+                    String searchElementName = item.attr("name");
 
                     if((searchElementId != null && searchElementId.trim().equalsIgnoreCase(anchorElementForAttributeValue)) ||
-                       (searchElementName != null && searchElementName.trim().equals(anchorElementForAttributeValue)))
+                            (searchElementName != null && searchElementName.trim().equals(anchorElementForAttributeValue)))
                     {
                         result.add(item);
                     }
@@ -1796,6 +1398,92 @@ public class DomUtil
         }
 
         return null;
+    }
+
+    private List<ElementRecord> getElementRecords(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
+    {
+        List<ElementRecord> result;
+
+        switch (searchMethod)
+        {
+            case ByDistance:
+                result = getClosestElementRecords(anchorElement, searchElements);
+                break;
+            case ByLink:
+                result = getLinkedElementRecords(anchorElement, searchElements);
+                break;
+            case ByLinkAndDistance:
+                result = getElementRecordsByLinkAndShortestDistance(anchorElement, searchElements);
+                break;
+            default:
+                throw new NotImplementedException("Search type not implemented");
+        }
+
+        return result;
+    }
+
+    private List<ElementRecord> getElementRecordsByLinkAndShortestDistance(Element anchorElement, Elements searchElements)
+    {
+        List<ElementRecord> linkedElementRecords = getLinkedElementRecords(anchorElement, searchElements);
+        List<ElementRecord> result;
+
+        if(hasItem(linkedElementRecords))
+        {
+            result = linkedElementRecords.size() == 1
+                    ? linkedElementRecords
+                    : getClosestElementRecords(anchorElement, extractElementsFromElementRecords(linkedElementRecords));
+        }
+        else
+        {
+            result = getClosestElementRecords(anchorElement, searchElements);
+        }
+
+        return result;
+    }
+
+    private Elements extractElementsFromElementRecords(List<ElementRecord> elementRecords)
+    {
+        Elements elements = new Elements();
+
+        if(hasItem(elementRecords))
+        {
+            for(ElementRecord record : elementRecords)
+            {
+                elements.add(record.element);
+            }
+        }
+
+        return elements;
+    }
+
+    private List<ElementRecord> getLinkedElementRecords(Element anchorElement, Elements searchElements)
+    {
+        List<ElementRecord> result = new ArrayList<>();
+        List<ElementRecord> searchElementRecords = getElementRecords(anchorElement, searchElements);
+
+        if (hasItem(searchElements) && anchorElement != null)
+        {
+            Attribute anchorElementForAttribute = getAttributeByNameContainingPattern(anchorElement, "for");
+
+            if(anchorElementForAttribute != null)
+            {
+                String anchorElementForAttributeValue = anchorElementForAttribute.getValue();
+
+                for (ElementRecord item : searchElementRecords)
+                {
+                    String searchElementId = item.element.attr("id");
+                    String searchElementName = item.element.attr("name");
+
+                    if((searchElementId != null && searchElementId.trim().equalsIgnoreCase(anchorElementForAttributeValue)) ||
+                            (searchElementName != null && searchElementName.trim().equals(anchorElementForAttributeValue)))
+                    {
+                        result.add(item);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private List<ElementRecord> getClosestElementRecords(Element anchorElement, Elements searchElements)
@@ -1833,11 +1521,13 @@ public class DomUtil
 
     private List<ElementRecord> getElementRecords(Element anchorElement, Elements searchElements)
     {
+        logger.info(String.format("get element records for ANCHOR '%s'", anchorElement));
+        StopWatch stopWatch = StopWatch.createStarted();
         List<ElementRecord> result = new ArrayList<>();
 
         if(hasNoItem(searchElements) || anchorElement == null)
         {
-            return result;
+            result = new ArrayList<>();
         }
 
         for (int i = 0 ; i < searchElements.size(); i++)
@@ -1851,11 +1541,14 @@ public class DomUtil
             }
         }
 
+        stopWatch.stop();
+        logger.info(String.format("get element records for ANCHOR '%s' - time in ms: %s", anchorElement, stopWatch.getTime(TimeUnit.MILLISECONDS)));
         return result;
     }
 
     private ElementRecord getElementRecord(Element anchorElement, Element searchElement, int searchElementIndex)
     {
+        logger.info(String.format("get element record for ANCHOR '%s' and SEARCH ELEMENT '%s'", anchorElement, searchElement));
         MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair =
             getContainingTree(anchorElement, searchElement);
         ElementRecord currentFoundElementRecord = null;
@@ -1864,7 +1557,7 @@ public class DomUtil
         {
             List<TreeElement> tree = matchedElementPositionAndTreePair.getValue();
             List<Integer> matchedElementPosition = matchedElementPositionAndTreePair.getKey();
-            TreeElement anchor = getFirstMatchedElementInTree(tree, anchorElement);
+            TreeElement anchor = getFirstMatchedElementInTree(tree, new TreeElement(anchorElement));
 
             if(hasItem(matchedElementPosition) && anchor != null && hasItem(anchor.position))
             {
@@ -1891,7 +1584,7 @@ public class DomUtil
         while(firstFound == null)
         {
             elementTree = getElementTree(rootElement);
-            firstFound = getFirstMatchedElementInTree(elementTree, searchElement);
+            firstFound = getFirstMatchedElementInTree(elementTree, new TreeElement(searchElement));
 
             if(firstFound == null)
             {
@@ -1907,15 +1600,13 @@ public class DomUtil
         return firstFound == null ? null : new MapEntry<>(firstFound.position, elementTree);
     }
 
-    private TreeElement getFirstMatchedElementInTree(List<TreeElement> elementTree, Element searchElement)
+    private TreeElement getFirstMatchedElementInTree(List<TreeElement> elementTree, TreeElement searchElement)
     {
         if(hasItem(elementTree))
         {
-            TreeElement searchTreeElement = new TreeElement(searchElement);
-
             for (TreeElement item : elementTree)
             {
-                if (elementEquals(item, searchTreeElement))
+                if (elementEquals(item.element, searchElement.element))
                 {
                     return item;
                 }
@@ -1933,7 +1624,7 @@ public class DomUtil
 
         do
         {
-            if(elementEquals(new TreeElement(currentParent), new TreeElement(root)))
+            if(elementEquals(currentParent, root))
             {
                 break;
             }
@@ -1948,42 +1639,36 @@ public class DomUtil
         return result;
     }
 
-    private boolean elementEquals(TreeElement element1, TreeElement element2)
+    private boolean elementEquals(Element element1, Element element2)
     {
-        if(element1 == null)
+        Element parent1 = element1;
+        Element parent2 = element2;
+        int depthCount = 0;
+
+        while (parent1 != null && parent2 != null && depthCount < searchDepth)
         {
-            return false;
+            String parent1Tag = getTag(parent1);
+            String parent2Tag = getTag(parent2);
+
+            if(!parent1Tag.equals(parent2Tag))
+            {
+                return false;
+            }
+
+            parent1 = parent1.parent();
+            parent2 = parent2.parent();
+            depthCount++;
         }
 
-        boolean result = element1.equals(element2);
-        return result ? true : areEquals(element1.element, element2.element);
+        return true;
+
+
     }
 
-    private boolean areEquals(Element element1, Element element2)
+    private String getTag(Element element)
     {
-        if(element1 == null || element2 == null)
-        {
-            return false;
-        }
-
-        if(element1.toString().equals(element2.toString()))
-        {
-            Element parent1 = element1.parent();
-            Element parent2 = element2.parent();
-
-            if(parent1.tagName().equalsIgnoreCase("html") && parent2.tagName().equalsIgnoreCase("html"))
-            {
-                 return true;
-            }
-            else
-            {
-                return areEquals(element1.parent(), element2.parent());
-            }
-        }
-        else
-        {
-            return false;
-        }
+        String outerHtml = element.outerHtml();
+        return outerHtml == null ? null : outerHtml.substring(0, outerHtml.indexOf('>') + 1);
     }
 
     private TreeElement getRootElement(List<TreeElement> tree)
@@ -2054,21 +1739,6 @@ public class DomUtil
     {
         Elements elements = document == null ? null : document.select("html");
         return hasItem(elements) ? elements.first() : null;
-    }
-
-    private Elements toElements(List<Element> elements)
-    {
-        Elements result = new Elements();
-
-        if(hasItem(elements))
-        {
-            for(Element item : elements)
-            {
-                result.add(item);
-            }
-        }
-
-        return result;
     }
 
     private <T> boolean hasItem(List<T> list)

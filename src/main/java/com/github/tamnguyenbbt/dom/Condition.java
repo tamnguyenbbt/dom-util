@@ -1,8 +1,19 @@
 package com.github.tamnguyenbbt.dom;
 
-final class Condition
+public class Condition
 {
-    protected boolean whereIgnoreCaseForOwnText;
-    protected boolean whereOwnTextContainingPattern;
-    protected boolean whereIncludingTabsAndSpacesForOwnText;
+    public boolean whereIgnoreCaseForOwnText;
+    public boolean whereOwnTextContainingPattern;
+    public boolean whereIncludingTabsAndSpacesForOwnText;
+
+    public Condition()
+    {
+    }
+
+    public Condition(boolean whereIgnoreCaseForOwnText, boolean whereOwnTextContainingPattern, boolean whereIncludingTabsAndSpacesForOwnText)
+    {
+        this.whereIgnoreCaseForOwnText = whereIgnoreCaseForOwnText;
+        this.whereOwnTextContainingPattern = whereOwnTextContainingPattern;
+        this.whereIncludingTabsAndSpacesForOwnText = whereIncludingTabsAndSpacesForOwnText;
+    }
 }
