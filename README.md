@@ -7,10 +7,16 @@ This utility is to help reduce the effort for this process.
 
 ## How to use:
  - Locate anchor web element on a web page under test such as a label closest to the web element to search
- - Get the information about the anchor web element: tag name, and own text
+ - Get the information about the **anchor web element**: tag name, and own text
     i.e. ```<div jsname="YRMmle" class="AxOyFc snByac" aria-hidden="true">First name</div> --> tag: div, and text: First name```
  - Get the tag name or any css selector of the element to search, i.e. 'input'
- - Pass them to a method of DomUtil
+ - Pass them to a method of DomUtil. 
+* Notes: each method in dom-util often goes in 3 overloads. For instance, getWebElementExactMatch, getWebElement, getWebElementBestEffort.
+ The **ExactMatch** overload compares the text with case sensitive and equals and trimming all the tabs and spaces.
+ The normal overload tries the exact matching first and if fails it tries the case sensitive and containing and trimming all the tabs and spaces.
+ The **BestEffort** overload tries to find the element similar to what the normal overload does but even multiple anchors found, it will tries hard as well. Non best effort overloads will throws 'AmbiguousAnchorElementsException' when multiple anchors found.   
+ If you want to further control the options, use the overloads having parameter ElementInfo where you can specify the search condition combinations of your choice.
+ There are overloads such as findElement**WithTwoAnchors** as well for the convenient. It can be used where a web page has a label (parent anchor) and then another label underneath (anchor) and then the web element you want to find. For instance, it can be used for a question then 2 radio buttons with labels 'Yes' and 'No'.
 
 ## Examples:
 
@@ -24,11 +30,11 @@ This utility is to help reduce the effort for this process.
         //Element: jsoup element
         //WebElement: Selenium web element
         
-        WebElement firstNameWebElement = DomUtil.getElement(driver, "First name", "input");
+        WebElement firstNameWebElement = DomUtil.getWebElement(driver, "First name", "input");
         firstNameWebElement.sendKeys(uuid);      
-        DomUtil.getElement(driver, "Next", "button").click();
+        DomUtil.getWebElement(driver, "Next", "button").click();
         
-        String xpath1 = DomUtil.getXpaths(document, "div", "First name", "input").get(0);
+        String xpath1 = DomUtil.getXpaths(document, "div", "First name", "div>input").get(0);
         String xpath2 = DomUtil.getXpaths(document, "Username", "input").get(0); //returns: "//div[div[contains(text(),'Username')]]/input";
         
         String xpath3 = DomUtil.getXpath(document, "div", "First name", "input");
