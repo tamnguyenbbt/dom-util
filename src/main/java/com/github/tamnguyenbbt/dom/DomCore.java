@@ -6,7 +6,6 @@ import com.github.tamnguyenbbt.task.TaskFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang.time.StopWatch; //this gets called instead of those of lang3 so use lang to avoid problem when lang and lang3 co-exist
 import org.apache.log4j.Logger;
-import org.apache.poi.ss.formula.functions.T;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;

@@ -6,7 +6,7 @@
 
     <groupId>com.github.tamnguyenbbt</groupId>
     <artifactId>dom-util</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
     <name>dom utility</name>
     <description>Find jsoup elements, relative xpath queries, and Selenium web elements for web service and Selenium-based Web UI testing</description>
@@ -55,9 +55,11 @@
 
     <properties>
         <version.jsoup>1.11.3</version.jsoup>
-        <version.commons-lang3>3.8.1</version.commons-lang3>
+        <version.commons-lang>2.6</version.commons-lang>
         <version.junit>4.12</version.junit>
-        <version.selenium-java>3.141.5</version.selenium-java>
+        <version.selenium-api>3.9.1</version.selenium-api>
+        <version.selenium-support>3.9.1</version.selenium-support>
+        <version.selenium-chrome-driver>3.9.1</version.selenium-chrome-driver>
         <version.webdrivermanager>3.0.0</version.webdrivermanager>
         <version.maven-compiler-plugin>3.8.0</version.maven-compiler-plugin>
         <version.maven-resource-plugin>3.0.1</version.maven-resource-plugin>
@@ -79,10 +81,11 @@
             <version>${version.jsoup}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${version.commons-lang3}</version>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${version.commons-lang}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -90,8 +93,18 @@
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-java</artifactId>
-            <version>${version.selenium-java}</version>
+            <artifactId>selenium-api</artifactId>
+            <version>${version.selenium-api}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-support</artifactId>
+            <version>${version.selenium-support}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>${version.selenium-chrome-driver}</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>

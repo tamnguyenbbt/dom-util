@@ -24,31 +24,32 @@ This utility is to help reduce the effort for this process.
         //Element: jsoup element
         //WebElement: Selenium web element
         
-        WebElement firstNameWebElement = DomUtil.findElement(driver, "First name", "input"); 
+        WebElement firstNameWebElement = DomUtil.getElement(driver, "First name", "input");
         firstNameWebElement.sendKeys(uuid);      
-        DomUtil.findElement(driver, "Next", "button").click();
+        DomUtil.getElement(driver, "Next", "button").click();
         
-        String xpath1 = DomUtil.getXPaths(document, "div", "First name", "input").get(0);
-        String xpath2 = DomUtil.getXPaths(document, "Username", "input").get(0); //returns: "//div[div[contains(text(),'Username')]]/input";
+        String xpath1 = DomUtil.getXpaths(document, "div", "First name", "input").get(0);
+        String xpath2 = DomUtil.getXpaths(document, "Username", "input").get(0); //returns: "//div[div[contains(text(),'Username')]]/input";
         
-        String xpath3 = DomUtil.getXPath(document, "div", "First name", "input");
-        String xpath4 = DomUtil.getXPath(document, "First name", "input");
+        String xpath3 = DomUtil.getXpath(document, "div", "First name", "input");
+        String xpath4 = DomUtil.getXpath(document, "First name", "input");
         
-        Element firstNameTextBox1 = DomUtil.getClosestElements(document, "div", "First name", "input").get(0);
-        Element firstNameTextBox2 = DomUtil.getClosestElements(document, "First name", "input").get(0);
+        Element firstNameTextBox1 = DomUtil.getElements(document, "div", "First name", "input").get(0);
+        Element firstNameTextBox2 = DomUtil.getElements(document, "First name", "input").get(0);
         String jsNameAttributeValue = firstNameTextBox1.attr("jsname");
+
+* See: https://github.com/tamnguyenbbt/dom-util/blob/master/src/test/java/com/github/tamnguyenbbt/DomUtilTest.java
         
 ## License
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
 
+* Version **1.0.4** released on 12/10/2018
+* Version **1.0.3** released on 12/06/2018
 * Version **1.0.2** released on 12/05/2018
-  --> add support for 2 anchors; add support for possible multiple anchors found; add methods to find full own text first and if not found, find using contains
-* Version **1.0.1** released on 12/04/2018 
-  --> add search by AnchorElementInfo class; add support for the case where anchor element is also the search element
-* Version **1.0.0** released on 12/02/2018 
-  --> First version
+* Version **1.0.1** released on 12/04/2018
+* Version **1.0.0** released on 12/02/2018
 
 ## Maven Repository
 
@@ -56,7 +57,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.4</version>
 </dependency>
 ```
 

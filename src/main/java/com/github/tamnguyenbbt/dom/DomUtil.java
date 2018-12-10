@@ -488,6 +488,17 @@ public class DomUtil extends DomInternal
         return getXpath(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
     }
 
+    public List<String> getXpathsBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
+    {
+        return getXpathsBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpaths(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException
+    {
+        return getXpaths(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
     public List<String> getXpathsBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
     {
         try
@@ -517,6 +528,25 @@ public class DomUtil extends DomInternal
         {
             return new ArrayList<>();
         }
+    }
+
+    public List<String> getXpathsBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<String> getXpaths(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, false);
     }
 
     public List<String> getXpaths(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
