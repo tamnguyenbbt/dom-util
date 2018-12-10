@@ -16,9 +16,9 @@ This utility is to help reduce the effort for this process.
  * Each method in dom-util often goes in 3 overloads. For instance, getWebElementExactMatch, getWebElement, getWebElementBestEffort.
  * The **ExactMatch** overload compares the text with case sensitive and equals and trimming all the tabs and spaces.
  * The normal overload tries the exact matching first and if fails it tries the case sensitive and containing and trimming all the tabs and spaces.
- * The **BestEffort** overload tries to find the element similar to what the normal overload does but even multiple anchors found, it will tries hard as well. Non best effort overloads will throws 'AmbiguousAnchorElementsException' when multiple anchors found.   
+ * The **BestEffort** overload tries to find the element similar to what the normal overload does but even when multiple anchors have been found, it will tries hard as well. Non best effort overloads will throw 'AmbiguousAnchorElementsException' when multiple anchors have been found.   
  * If you want to further control the options, use the overloads having parameter ElementInfo where you can specify the search condition combinations of your choice.
- * There are overloads such as findElement**WithTwoAnchors** as well for the convenient. It can be used where a web page has a label (parent anchor) and then another label underneath (anchor) and then the web element you want to find. For instance, it can be used for a question then 2 radio buttons with labels 'Yes' and 'No'.
+ * There are overloads such as findElement**WithTwoAnchors** as well for the convenience. It can be used where a web page has a label (parent anchor) and then another label underneath (anchor) and then the web element you want to find. For instance, it can be used for a question then 2 radio buttons with labels 'Yes' and 'No'.
 
 ## Examples:
 
