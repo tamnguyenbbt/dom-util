@@ -11,7 +11,9 @@ This utility is to help reduce the effort for this process.
     i.e. ```<div jsname="YRMmle" class="AxOyFc snByac" aria-hidden="true">First name</div> --> tag: div, and text: First name```
  - Get the tag name or any css selector of the element to search, i.e. 'input'
  - Pass them to a method of DomUtil. 
-* Notes: each method in dom-util often goes in 3 overloads. For instance, getWebElementExactMatch, getWebElement, getWebElementBestEffort.
+
+## Notes: 
+ * Each method in dom-util often goes in 3 overloads. For instance, getWebElementExactMatch, getWebElement, getWebElementBestEffort.
  * The **ExactMatch** overload compares the text with case sensitive and equals and trimming all the tabs and spaces.
  * The normal overload tries the exact matching first and if fails it tries the case sensitive and containing and trimming all the tabs and spaces.
  * The **BestEffort** overload tries to find the element similar to what the normal overload does but even multiple anchors found, it will tries hard as well. Non best effort overloads will throws 'AmbiguousAnchorElementsException' when multiple anchors found.   
