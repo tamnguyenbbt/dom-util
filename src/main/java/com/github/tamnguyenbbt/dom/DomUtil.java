@@ -205,6 +205,18 @@ public class DomUtil extends DomInternal
         return getWebElements(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
     }
 
+    public List<WebElement> getWebElementsBestEffort(WebDriver driver, ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getWebElementsBestEffort(driver, anchorElementInfo, new ElementInfo(searchCssQuery));
+    }
+
+    public List<WebElement> getWebElements(WebDriver driver, ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getWebElements(driver, anchorElementInfo, new ElementInfo(searchCssQuery));
+    }
+
     public List<WebElement> getWebElementsBestEffort(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
