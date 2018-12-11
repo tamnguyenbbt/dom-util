@@ -597,8 +597,6 @@ class DomCore
         }
 
         return true;
-
-
     }
 
     private String getTag(Element element)
