@@ -28,6 +28,8 @@ class DomCore
     protected final String ambiguousFoundWebElementMessage = "More than one web element found";
     protected int searchDepth;
     protected int timeoutInMs;
+    protected boolean exactMatchXpath;
+
     protected Logger logger =  Logger.getLogger(this.getClass().getName());
 
     public Document getActiveDocument(WebDriver driver)
@@ -81,23 +83,34 @@ class DomCore
         {
             if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
-                xpath = String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+                xpath = exactMatchXpath  ? String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText)
+                                    : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
             }
             else if (xpathPartFromRootElementToAnchorElement == "")
             {
-                xpath = String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
-                                      xpathPartFromRootElementToFoundElement);
+                xpath = exactMatchXpath
+                    ? String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
+                                  xpathPartFromRootElementToFoundElement)
+                    : String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
+                                    xpathPartFromRootElementToFoundElement);
             }
             else if (xpathPartFromRootElementToFoundElement == "")
             {
-                xpath = String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement,
-                                      rootElementTagName, anchorElementOwnText);
+                xpath = exactMatchXpath
+                    ? String.format("//%s[%s[text()='%s']]", xpathPartFromRootElementToAnchorElement,
+                                      rootElementTagName, anchorElementOwnText)
+                    : String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement,
+                                    rootElementTagName, anchorElementOwnText);
             }
             else
             {
-                xpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                xpath = exactMatchXpath
+                    ? String.format("//%s[%s[text()='%s']]/%s",
                                       rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
-                                      xpathPartFromRootElementToFoundElement);
+                                      xpathPartFromRootElementToFoundElement)
+                    : String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                                    rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
+                                    xpathPartFromRootElementToFoundElement);
             }
         }
 
@@ -437,7 +450,8 @@ class DomCore
 
     private List<ElementRecord> getElementRecords(Element anchorElement, Elements searchElements)
     {
-        logger.info(String.format("get element records for ANCHOR '%s'", anchorElement));
+        String displayedAnchor = anchorElement == null ? "" : cutText(anchorElement.toString(), 100, true);
+        logger.info(String.format("get element records for ANCHOR: '%s'", displayedAnchor));
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         List<ElementRecord> result;
@@ -461,7 +475,7 @@ class DomCore
         }
 
         stopWatch.stop();
-        logger.info(String.format("get element records for ANCHOR '%s' - time in ms: %s", anchorElement, stopWatch.getTime()));
+        logger.info(String.format("get element records for ANCHOR: '%s' - time in ms: %s", displayedAnchor, stopWatch.getTime()));
         return result;
     }
 
@@ -469,7 +483,11 @@ class DomCore
 
     private ElementRecord getElementRecord(GetElementRecordParam getElementRecordParam)
     {
-        logger.info(String.format("get element record for ANCHOR '%s' and SEARCH ELEMENT '%s'", getElementRecordParam.anchorElement, getElementRecordParam.searchElement));
+        Element anchorElement = getElementRecordParam == null ? null : getElementRecordParam.anchorElement;
+        Element searchElement = getElementRecordParam == null ? null : getElementRecordParam.searchElement;
+        String displayedAnchor = anchorElement == null ? "" : cutText(anchorElement.toString(), 100, true);
+        String displayedSearchElement = searchElement == null ? "" : cutText(searchElement.toString(), 100, true);
+        logger.info(String.format("get element record for ANCHOR: '%s' and SEARCH ELEMENT '%s'",displayedAnchor, displayedSearchElement));
         MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair =
             getContainingTree(getElementRecordParam.anchorElement, getElementRecordParam.searchElement);
         ElementRecord currentFoundElementRecord = null;
@@ -579,6 +597,8 @@ class DomCore
         }
 
         return true;
+
+
     }
 
     private String getTag(Element element)
@@ -646,5 +666,18 @@ class DomCore
         }
 
         return result;
+    }
+
+    private String cutText(String input, int toLength, boolean removeLineSeparators)
+    {
+        String output =  input == null ? null : input.substring(0, Math.min(input.length(), toLength));
+        output = input.length() > toLength ? output + "..." : output;
+        return removeLineSeparators ? removeLineSeparators(output) : output;
+    }
+
+    private String removeLineSeparators(String input)
+    {
+        String separator = File.separator;
+        return input == null ? null : input.replace(separator, "").replace("\n", "").replace("\r", "");
     }
 }
