@@ -38,6 +38,11 @@ public class DomUtil extends DomInternal
         this.timeoutInMs = timeoutInMs;
     }
 
+    public void createExactMatchXpath(boolean exactMatchXpath)
+    {
+        this.exactMatchXpath = exactMatchXpath;
+    }
+
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, String parentAnchorElementOwnText,
                                                             String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundWebElementsException
