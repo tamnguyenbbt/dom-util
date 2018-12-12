@@ -72,8 +72,17 @@ class DomCore
     protected String buildXpath(Element anchorElement, ElementRecord record)
     {
         String xpath = null;
+
+        if(record == null || anchorElement == null)
+        {
+            return null;
+        }
+
         Element rootElement = record.rootElement;
         Element foundElement = record.element;
+        String foundElementName = getElementAttributeValue(record.element, "name");
+        String foundElementId = getElementAttributeValue(record.element, "id");
+
         String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement,
                                                                                                       foundElement);
         String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement,
@@ -86,13 +95,13 @@ class DomCore
             if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
                 xpath = exactMatchXpath  ? String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText)
-                                    : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+                    : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
             }
             else if (xpathPartFromRootElementToAnchorElement == "")
             {
                 xpath = exactMatchXpath
                     ? String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
-                                  xpathPartFromRootElementToFoundElement)
+                                    xpathPartFromRootElementToFoundElement)
                     : String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
                                     xpathPartFromRootElementToFoundElement);
             }
@@ -100,7 +109,7 @@ class DomCore
             {
                 xpath = exactMatchXpath
                     ? String.format("//%s[%s[text()='%s']]", xpathPartFromRootElementToAnchorElement,
-                                      rootElementTagName, anchorElementOwnText)
+                                    rootElementTagName, anchorElementOwnText)
                     : String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement,
                                     rootElementTagName, anchorElementOwnText);
             }
@@ -108,12 +117,22 @@ class DomCore
             {
                 xpath = exactMatchXpath
                     ? String.format("//%s[%s[text()='%s']]/%s",
-                                      rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
-                                      xpathPartFromRootElementToFoundElement)
+                                    rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
+                                    xpathPartFromRootElementToFoundElement)
                     : String.format("//%s[%s[contains(text(),'%s')]]/%s",
                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
                                     xpathPartFromRootElementToFoundElement);
             }
+        }
+
+        if(foundElementName != null)
+        {
+            xpath = String.format("%s[@name='%s']", xpath, foundElementName);
+        }
+
+        if(foundElementId != null)
+        {
+            xpath = String.format("%s[@id='%s']", xpath, foundElementId);
         }
 
         return xpath;
@@ -140,7 +159,7 @@ class DomCore
 
         return result;
     }
-    
+
     protected Attribute getAttributeByNameContainingPattern(Element element, String pattern)
     {
         if(element == null)
@@ -337,8 +356,8 @@ class DomCore
 
                 for (Element item : searchElements)
                 {
-                    String searchElementId = item.attr("id");
-                    String searchElementName = item.attr("name");
+                    String searchElementId = getElementAttributeValue(item, "id");
+                    String searchElementName = getElementAttributeValue(item, "name");
 
                     if ((searchElementId != null && searchElementId.trim()
                         .equalsIgnoreCase(anchorElementForAttributeValue)) ||
@@ -351,6 +370,16 @@ class DomCore
         }
 
         return result;
+    }
+
+    private String getElementAttributeValue(Element element, String attributeKey)
+    {
+        if(attributeKey == null || element == null || !element.hasAttr(attributeKey))
+        {
+            return null;
+        }
+
+        return element.attr(attributeKey);
     }
 
     private List<ElementRecord> getElementRecordsByLinkAndShortestDistance(Element anchorElement, Elements searchElements)
