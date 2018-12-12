@@ -101,6 +101,38 @@ class DomInternal extends DomCore
         return xpath == null ? null : findWebElement(driver, xpath);
     }
 
+    protected List<WebElement> getWebElementsWithTwoAnchors(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                     String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        List<WebElement> webElement = getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
+
+        if(hasNoItem(webElement))
+        {
+            try
+            {
+                return getWebElementsWithTwoAnchors(driver, new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true),
+                                                   new ElementInfo(anchorElementTagName, anchorElementOwnText), searchCssQuery, bestEffort);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
+        }
+
+        return webElement;
+    }
+
+    protected List<WebElement> getWebElementsWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                               String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        try
+        {
+            return getWebElementsWithTwoAnchors(driver, new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText),
+                                               new ElementInfo(anchorElementTagName, anchorElementOwnText), searchCssQuery, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){ return null; }
+    }
+
     protected List<WebElement> getWebElementsWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
                                                      ElementInfo anchorElementInfo, String searchCssQuery,
                                                      boolean bestEffort)
@@ -221,8 +253,7 @@ class DomInternal extends DomCore
 
     protected String getXpathWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo,
                                           ElementInfo anchorElementInfo, String searchCssQuery, boolean bestEffort)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException,
-        AnchorIndexIfMultipleFoundOutOfBoundException
+        throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         Elements searchElements = document.select(searchCssQuery);
 
@@ -231,8 +262,7 @@ class DomInternal extends DomCore
             return null;
         }
 
-        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo,
-                                                    SearchMethod.ByLink, bestEffort);
+        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
 
         if (hasItem(anchorElementsByLink))
         {
@@ -241,40 +271,24 @@ class DomInternal extends DomCore
 
             if (activeAnchorElementsByLinkCount > 1 && !bestEffort)
             {
-                throw new AmbiguousAnchorElementsException(
-                    String.format(ambiguousAnchorMessage, activeAnchorElementsByLinkCount));
+                throw new AmbiguousAnchorElementsException(String.format(ambiguousAnchorMessage, activeAnchorElementsByLinkCount));
             }
 
             return getXpath(activeAnchorElementsByLink, searchElements, SearchMethod.ByDistance, bestEffort);
         }
+
+        Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink, bestEffort);
+
+        if (hasItem(elementsByLink))
+        {
+            Elements anchorElements = getElementsByTagNameMatchingOwnText(document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
+            Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
+            return getXpath(filteredAnchors, elementsByLink, SearchMethod.ByDistance, bestEffort);
+        }
         else
         {
-            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery),
-                                                  SearchMethod.ByLink, bestEffort);
-
-            if (hasItem(elementsByLink))
-            {
-                Elements anchorElements = getElementsByTagNameMatchingOwnText(
-                    document,
-                    anchorElementInfo.tagName,
-                    anchorElementInfo.ownText,
-                    anchorElementInfo.condition);
-
-                int currentSearchDepth = searchDepth;
-                searchDepth = searchDepth * 5;
-                Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance,
-                                                       bestEffort);
-                searchDepth = currentSearchDepth;
-                return getXpath(document, filteredAnchors, new ElementInfo(searchCssQuery), SearchMethod.ByDistance,
-                                bestEffort);
-            }
-            else
-            {
-                Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo,
-                                                             SearchMethod.ByDistance, bestEffort);
-                return getXpath(document, closestAnchorElements, new ElementInfo(searchCssQuery),
-                                SearchMethod.ByDistance, bestEffort);
-            }
+            Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByDistance, bestEffort);
+            return getXpath(document, closestAnchorElements, new ElementInfo(searchCssQuery), SearchMethod.ByDistance, bestEffort);
         }
     }
 
