@@ -22,29 +22,34 @@ This utility is to help reduce the effort for this process.
 
 ## Examples:
 
-        String url = "https://accounts.google.com/signup/v2/webcreateaccount?hl=en&flowName=GlifWebSignIn&flowEntry=SignUp";
+        String url = "https://test.com.au/dom-util-test";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
-        driver.get(url);
-        String uuid = UUID.randomUUID().toString().substring(0, 20);
+        driver.get(url);        
 
         //Document: jsoup document
         //Element: jsoup element
         //WebElement: Selenium web element
+        DomUtil domUtil = new DomUtil();
         
-        WebElement firstNameWebElement = DomUtil.getWebElement(driver, "First name", "input");
-        firstNameWebElement.sendKeys(uuid);      
-        DomUtil.getWebElement(driver, "Next", "button").click();
+        WebElement location = domUtil.getWebElement(driver, "Location", "input");
+        location.sendKeys("test");      
+        domUtil.getWebElementBestEffort(driver, "span", "Next", "button").click();
+        domUtil.getWebElementBestEffort(driver, "Next", "button").click();
+        domUtil.getWebElementBestEffort(driver, "Next", "div>button").click();
         
-        String xpath1 = DomUtil.getXpaths(document, "div", "First name", "div>input").get(0);
-        String xpath2 = DomUtil.getXpaths(document, "Username", "input").get(0); //returns: "//div[div[contains(text(),'Username')]]/input";
+        String firstName = domUtil.getXpathsBestEffort(document, "div", "First name", "div>input").get(0);
+        String userName = domUtil.getXpaths(document, "Username", "input"); 
+        //returns: "//div[div[contains(text(),'Username')]]/input[@id='1111'][@name='User Name']";
         
-        String xpath3 = DomUtil.getXpath(document, "div", "First name", "input");
-        String xpath4 = DomUtil.getXpath(document, "First name", "input");
+        String lastName = domUtil.getXpathBestEffort(document, "div", "Last name", "input");
+        String middleName = domUtil.getXpath(document, "Middle Name", "div span input");
         
-        Element firstNameTextBox1 = DomUtil.getElements(document, "div", "First name", "input").get(0);
-        Element firstNameTextBox2 = DomUtil.getElements(document, "First name", "input").get(0);
-        String jsNameAttributeValue = firstNameTextBox1.attr("jsname");
+        Element doB = domUtil.getElement(document, "div", "Date of Birth", "input");
+        Elements address = domUtil.getElements(document, "Address", "input").get(0);
+        String jsNameAttributeValue = address.attr("jsname");
+        
+        domUtil.getWebElementWithTwoAnchorsBestEffort(driver, "div","your first time using our service?", "span", "Yes",  "input").click();
 
 * See: https://github.com/tamnguyenbbt/dom-util/blob/master/src/test/java/com/github/tamnguyenbbt/DomUtilTest.java
         
