@@ -52,7 +52,8 @@ This utility is to help reduce the effort for this process.
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
-
+* Version **1.0.6** released on 12/12/2018
+* Version **1.0.5** released on 12/11/2018
 * Version **1.0.4** released on 12/10/2018
 * Version **1.0.3** released on 12/06/2018
 * Version **1.0.2** released on 12/05/2018
@@ -65,11 +66,11 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.6</version>
 </dependency>
 ```
 
-https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.2/jar
+https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.6/jar
 
 ## Future Development Plan
 - Page Object Model class generator (code generator) for test scripts to consume
