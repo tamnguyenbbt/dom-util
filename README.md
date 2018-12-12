@@ -39,14 +39,14 @@ This utility is to help reduce the effort for this process.
         domUtil.getWebElementBestEffort(driver, "Next", "div>button").click();
         
         String firstName = domUtil.getXpathsBestEffort(document, "div", "First name", "div>input").get(0);
-        String userName = domUtil.getXpaths(document, "Username", "input"); 
+        String userName = domUtil.getXpath(document, "Username", "input"); 
         //returns: "//div[div[contains(text(),'Username')]]/input[@id='1111'][@name='User Name']";
         
         String lastName = domUtil.getXpathBestEffort(document, "div", "Last name", "input");
         String middleName = domUtil.getXpath(document, "Middle Name", "div span input");
         
         Element doB = domUtil.getElement(document, "div", "Date of Birth", "input");
-        Elements address = domUtil.getElements(document, "Address", "input").get(0);
+        Elements address = domUtil.getElements(document, "Address", "input").get(1);
         String jsNameAttributeValue = address.attr("jsname");
         
         domUtil.getWebElementWithTwoAnchorsBestEffort(driver, "div","your first time using our service?", "span", "Yes",  "input").click();
