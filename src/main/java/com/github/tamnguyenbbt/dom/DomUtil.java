@@ -28,7 +28,8 @@ public class DomUtil extends DomInternal
         timeoutInMs = 2000;
     }
 
-    public void setSearchDepth(int searchDepth)
+    //TODO: remove due to the new search engine does not need this. Wait until new search engine is proved to be good.
+    protected void setSearchDepth(int searchDepth)
     {
         this.searchDepth = searchDepth;
     }
