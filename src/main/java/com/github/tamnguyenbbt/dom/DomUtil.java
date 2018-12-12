@@ -65,7 +65,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousFoundWebElementsException
     {
         return getWebElementWithTwoAnchorsBestEffort(driver, null, parentAnchorElementOwnText,
-                                              anchorElementTagName, anchorElementOwnText, searchCssQuery);
+                                                     anchorElementTagName, anchorElementOwnText, searchCssQuery);
     }
 
     public WebElement getWebElementWithTwoAnchors(WebDriver driver, String parentAnchorElementOwnText,
@@ -73,7 +73,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
         return getWebElementWithTwoAnchors(driver, null, parentAnchorElementOwnText,
-                                                     anchorElementTagName, anchorElementOwnText, searchCssQuery);
+                                           anchorElementTagName, anchorElementOwnText, searchCssQuery);
     }
 
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
@@ -83,7 +83,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getWebElementWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                         anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                               anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
         }
         catch(AmbiguousAnchorElementsException e) { return null; }
     }
@@ -96,7 +96,7 @@ public class DomUtil extends DomInternal
     }
 
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                                     ElementInfo anchorElementInfo, String searchCssQuery)
+                                                            ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         try
@@ -166,8 +166,31 @@ public class DomUtil extends DomInternal
         return getWebElement(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
     }
 
+    public List<WebElement> getWebElementsWithTwoAnchorsBestEffort(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousFoundWebElementsException
+    {
+        try
+        {
+            return getWebElementsWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                                       anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchors(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                         String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                            anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+    }
+
     public List<WebElement> getWebElementsWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                                                   ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         try
@@ -181,7 +204,7 @@ public class DomUtil extends DomInternal
     }
 
     public List<WebElement> getWebElementsWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                                         ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         return getWebElementsWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
@@ -238,7 +261,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                                   String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -252,15 +275,15 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchors(Document document, String parentAnchorElementOwnText,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                         String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementOwnText, searchCssQuery, false);
     }
 
     public String getXpathWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText,
-                                            String anchorElementTagName,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                                   String anchorElementTagName,
+                                                   String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -275,8 +298,8 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchors(Document document, String parentAnchorElementOwnText,
-                                            String anchorElementTagName,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                         String anchorElementTagName,
+                                         String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchors(document, parentAnchorElementOwnText, anchorElementTagName,
@@ -284,8 +307,8 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsBestEffort(Document document, String parentAnchorElementTagName,
-                                            String parentAnchorElementOwnText, String anchorElementTagName,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                                   String parentAnchorElementOwnText, String anchorElementTagName,
+                                                   String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -300,8 +323,8 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchors(Document document, String parentAnchorElementTagName,
-                                            String parentAnchorElementOwnText, String anchorElementTagName,
-                                            String anchorElementOwnText, String searchCssQuery)
+                                         String parentAnchorElementOwnText, String anchorElementTagName,
+                                         String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
@@ -309,7 +332,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
-                                                      String anchorElementOwnText, String searchCssQuery)
+                                                             String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -323,14 +346,14 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
-                                                      String anchorElementOwnText, String searchCssQuery)
+                                                   String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementOwnText, searchCssQuery, false);
     }
 
     public String getXpathWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
-                                                      String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+                                                             String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -345,7 +368,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
-                                                      String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, anchorElementTagName,
@@ -353,9 +376,9 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementTagName,
-                                                      String parentAnchorElementOwnText,
-                                                      String anchorElementTagName, String anchorElementOwnText,
-                                                      String searchCssQuery)
+                                                             String parentAnchorElementOwnText,
+                                                             String anchorElementTagName, String anchorElementOwnText,
+                                                             String searchCssQuery)
         throws AmbiguousFoundXpathsException
     {
         try
@@ -370,9 +393,9 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName,
-                                                      String parentAnchorElementOwnText,
-                                                      String anchorElementTagName, String anchorElementOwnText,
-                                                      String searchCssQuery)
+                                                   String parentAnchorElementOwnText,
+                                                   String anchorElementTagName, String anchorElementOwnText,
+                                                   String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
@@ -380,7 +403,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsBestEffort(Document document, ElementInfo parentAnchorElementInfo,
-                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                                   ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousFoundXpathsException,
         AnchorIndexIfMultipleFoundOutOfBoundException
     {
@@ -395,7 +418,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo,
-                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                         ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException,
         AnchorIndexIfMultipleFoundOutOfBoundException
     {
@@ -403,7 +426,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                                   ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         try
@@ -417,7 +440,7 @@ public class DomUtil extends DomInternal
     }
 
     public String getXpathWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                            ElementInfo anchorElementInfo, String searchCssQuery)
+                                         ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         return getXpathWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
@@ -512,7 +535,7 @@ public class DomUtil extends DomInternal
     }
 
     public List<String> getXpaths(Document document, String anchorElementOwnText, String searchCssQuery)
-            throws AmbiguousAnchorElementsException
+        throws AmbiguousAnchorElementsException
     {
         return getXpaths(document, null, anchorElementOwnText, searchCssQuery);
     }
@@ -549,7 +572,7 @@ public class DomUtil extends DomInternal
     }
 
     public List<String> getXpathsBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
-            throws AnchorIndexIfMultipleFoundOutOfBoundException
+        throws AnchorIndexIfMultipleFoundOutOfBoundException
     {
         try
         {
@@ -562,7 +585,7 @@ public class DomUtil extends DomInternal
     }
 
     public List<String> getXpaths(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
-            throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+        throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, false);
     }
