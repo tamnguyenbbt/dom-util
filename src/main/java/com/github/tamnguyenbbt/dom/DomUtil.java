@@ -22,26 +22,13 @@ import java.util.List;
  */
 public class DomUtil extends DomInternal
 {
+    public DomUtil(DomUtilConfig config)
+    {
+        super(config);
+    }
+
     public DomUtil()
     {
-        searchDepth = 1;
-        timeoutInMs = 2000;
-    }
-
-    //TODO: remove due to the new search engine does not need this. Wait until new search engine is proved to be good.
-    protected void setSearchDepth(int searchDepth)
-    {
-        this.searchDepth = searchDepth;
-    }
-
-    public void setTimeoutInMs(int timeoutInMs)
-    {
-        this.timeoutInMs = timeoutInMs;
-    }
-
-    public void createExactMatchXpath(boolean exactMatchXpath)
-    {
-        this.exactMatchXpath = exactMatchXpath;
     }
 
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, String parentAnchorElementOwnText,

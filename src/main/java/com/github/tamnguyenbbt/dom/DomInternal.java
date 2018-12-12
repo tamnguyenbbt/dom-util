@@ -17,8 +17,17 @@ import java.util.concurrent.TimeUnit;
 
 class DomInternal extends DomCore
 {
+    public DomInternal(DomUtilConfig config)
+    {
+        super(config);
+    }
+
+    public DomInternal()
+    {
+    }
+
     protected WebElement getWebElementWithTwoAnchors(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
-                                                               String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
+                                                     String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, boolean bestEffort)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
         WebElement webElement = getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
@@ -568,8 +577,7 @@ class DomInternal extends DomCore
     protected Element getElementWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo,
                                              ElementInfo anchorElementInfo,
                                              String searchCssQuery, boolean bestEffort)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException,
-        AnchorIndexIfMultipleFoundOutOfBoundException
+        throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         Elements searchElements = document.select(searchCssQuery);
 
@@ -578,8 +586,7 @@ class DomInternal extends DomCore
             return null;
         }
 
-        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo,
-                                                    SearchMethod.ByLink, bestEffort);
+        Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
 
         if (hasItem(anchorElementsByLink))
         {
@@ -594,34 +601,23 @@ class DomInternal extends DomCore
 
             return getElement(anchorElementsByLink, searchElements, SearchMethod.ByDistance, bestEffort);
         }
+
+        Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery),
+                SearchMethod.ByLink, bestEffort);
+
+        if (hasItem(elementsByLink))
+        {
+            Elements anchorElements = getElementsByTagNameMatchingOwnText(
+                    document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
+            Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
+            return getElement(filteredAnchors, elementsByLink, SearchMethod.ByDistance, bestEffort);
+        }
         else
         {
-            Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery),
-                                                  SearchMethod.ByLink, bestEffort);
-
-            if (hasItem(elementsByLink))
-            {
-                Elements anchorElements = getElementsByTagNameMatchingOwnText(
-                    document,
-                    anchorElementInfo.tagName,
-                    anchorElementInfo.ownText,
-                    anchorElementInfo.condition);
-
-                int currentSearchDepth = searchDepth;
-                searchDepth = searchDepth * 5;
-                Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance,
-                                                       bestEffort);
-                searchDepth = currentSearchDepth;
-                return getElement(document, filteredAnchors, new ElementInfo(searchCssQuery), SearchMethod.ByDistance,
-                                  bestEffort);
-            }
-            else
-            {
-                Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo,
-                                                             SearchMethod.ByDistance, bestEffort);
-                return getElement(document, closestAnchorElements, new ElementInfo(searchCssQuery),
-                                  SearchMethod.ByDistance, bestEffort);
-            }
+            Elements closestAnchorElements = getElements(document, parentAnchorElementInfo, anchorElementInfo,
+                    SearchMethod.ByDistance, bestEffort);
+            return getElement(document, closestAnchorElements, new ElementInfo(searchCssQuery),
+                    SearchMethod.ByDistance, bestEffort);
         }
     }
 
@@ -875,7 +871,7 @@ class DomInternal extends DomCore
     private WebElement findWebElement(WebDriver driver, String xpath) throws AmbiguousFoundWebElementsException
     {
         List<WebElement> foundWebElements = findWebElements(driver, xpath);
-        int pollingEveryInMs = timeoutInMs / 10;
+        int pollingEveryInMs = config.webDriverTimeoutInMilliseconds / 10;
 
         if (hasItem(foundWebElements))
         {
@@ -884,7 +880,7 @@ class DomInternal extends DomCore
                 throw new AmbiguousFoundWebElementsException(ambiguousFoundWebElementMessage);
             }
 
-            return findWebElement(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+            return findWebElement(driver, By.xpath(xpath), config.webDriverTimeoutInMilliseconds, pollingEveryInMs);
         }
 
         return null;
@@ -892,8 +888,8 @@ class DomInternal extends DomCore
 
     private List<WebElement> findWebElements(WebDriver driver, String xpath)
     {
-        int pollingEveryInMs = timeoutInMs / 10;
-        return findWebElements(driver, By.xpath(xpath), timeoutInMs, pollingEveryInMs);
+        int pollingEveryInMs = config.webDriverTimeoutInMilliseconds / 10;
+        return findWebElements(driver, By.xpath(xpath), config.webDriverTimeoutInMilliseconds, pollingEveryInMs);
     }
 
     private List<WebElement> findWebElements(WebDriver driver, final By locator, int timeoutInMs, int pollingEveryInMs)

@@ -78,10 +78,10 @@ public class DomUtilTest
     }
 
     @Test
-    public void getXPaths() throws IOException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    public void getXPaths() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -95,10 +95,10 @@ public class DomUtilTest
     }
 
     @Test
-    public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -118,7 +118,7 @@ public class DomUtilTest
     }
 
     @Test
-    public void getClosestElementsFromAnchorElement() throws IOException, NoAnchorElementFoundException, AmbiguousAnchorElementsException
+    public void getClosestElementsFromAnchorElement() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
         String expectedJSNameValue = "YPqjbf";
@@ -135,10 +135,10 @@ public class DomUtilTest
     }
 
     @Test
-    public void getXPath() throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    public void getXPath() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -153,7 +153,7 @@ public class DomUtilTest
     }
 
     @Test
-    public void getXPath_self() throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, IOException
+    public void getXPath_self() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, IOException
     {
         //Arrange
         String expectedXPath = "//button[contains(text(),'Next')]";
@@ -169,7 +169,7 @@ public class DomUtilTest
 
     @Test
     public void sampleSeleniumTest_using_getXpath()
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, InterruptedException
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, InterruptedException
     {
         //Arrange
         WebDriverManager.chromedriver().setup();
@@ -181,13 +181,13 @@ public class DomUtilTest
         String xpath = domUtil.getXpath(document, "div", "Username", "input");
         WebElement userName = driver.findElement(By.xpath(xpath));
         userName.sendKeys("Happy Testing!");
-        Thread.sleep(2000); //open your eyes to see
+        Thread.sleep(1000);
         driver.quit();
     }
 
     @Test
     public void sampleSeleniumTest_using_findElement_NoAnchorElementFoundException()
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
     {
         //Arrange
         WebDriverManager.chromedriver().setup();
@@ -212,7 +212,7 @@ public class DomUtilTest
 
     @Test
     public void sampleSeleniumTest_using_findElement_no_element_found()
-            throws NoAnchorElementFoundException, AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
     {
         //Arrange
         WebDriverManager.chromedriver().setup();
@@ -221,7 +221,7 @@ public class DomUtilTest
 
         //Act
         WebElement firstName = domUtil.getWebElement(driver, "First name", "label");
-        Thread.sleep(2000); //open your eyes to see
+        Thread.sleep(1000);
         driver.quit();
 
         //Assert

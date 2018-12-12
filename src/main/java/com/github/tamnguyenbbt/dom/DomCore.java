@@ -28,11 +28,35 @@ class DomCore
     protected final String ambiguousFoundXpathMessage = "%s xpaths found";
     protected final String ambiguousFoundWebElementMessage = "More than one web element found";
     protected final String uniqueInsertedAttribute = "wusiwug";
-    protected int searchDepth; //TODO: remove due to the new search engine does not need this. Wait until new search engine is proved to be good.
-    protected int timeoutInMs;
-    protected boolean exactMatchXpath;
-
+    DomUtilConfig config;
     protected Logger logger =  Logger.getLogger(this.getClass().getName());
+    private int searchDepth;
+
+    protected DomCore(DomUtilConfig config)
+    {
+        if(config == null)
+        {
+            this.config = new DomUtilConfig();
+        }
+
+        if(hasNoItem(config.xpathBuildOptions))
+        {
+            config.xpathBuildOptions = new ArrayList<>();
+            config.xpathBuildOptions.add(XpathBuildOption.AttachId);
+            config.xpathBuildOptions.add(XpathBuildOption.AttachName);
+        }
+
+        if(config.webDriverTimeoutInMilliseconds <= 0)
+        {
+            config.webDriverTimeoutInMilliseconds = 2000;
+        }
+    }
+
+    protected DomCore()
+    {
+        searchDepth = 5;
+        config = new DomUtilConfig();
+    }
 
     public Document getActiveDocument(WebDriver driver)
     {
@@ -94,12 +118,13 @@ class DomCore
         {
             if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
-                xpath = exactMatchXpath  ? String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText)
-                    : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
+                        ? String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText)
+                        : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
             }
             else if (xpathPartFromRootElementToAnchorElement == "")
             {
-                xpath = exactMatchXpath
+                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
                     ? String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
                                     xpathPartFromRootElementToFoundElement)
                     : String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
@@ -107,7 +132,7 @@ class DomCore
             }
             else if (xpathPartFromRootElementToFoundElement == "")
             {
-                xpath = exactMatchXpath
+                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
                     ? String.format("//%s[%s[text()='%s']]", xpathPartFromRootElementToAnchorElement,
                                     rootElementTagName, anchorElementOwnText)
                     : String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement,
@@ -115,7 +140,7 @@ class DomCore
             }
             else
             {
-                xpath = exactMatchXpath
+                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
                     ? String.format("//%s[%s[text()='%s']]/%s",
                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
                                     xpathPartFromRootElementToFoundElement)
@@ -125,12 +150,12 @@ class DomCore
             }
         }
 
-        if(foundElementName != null)
+        if(foundElementName != null && config.xpathBuildOptions.contains(XpathBuildOption.AttachName))
         {
             xpath = String.format("%s[@name='%s']", xpath, foundElementName);
         }
 
-        if(foundElementId != null)
+        if(foundElementId != null && config.xpathBuildOptions.contains(XpathBuildOption.AttachId))
         {
             xpath = String.format("%s[@id='%s']", xpath, foundElementId);
         }
