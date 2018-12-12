@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 class DomCore
 {
@@ -26,7 +27,8 @@ class DomCore
     protected final String ambiguousFoundElementsMessage = "%s elements found";
     protected final String ambiguousFoundXpathMessage = "%s xpaths found";
     protected final String ambiguousFoundWebElementMessage = "More than one web element found";
-    protected int searchDepth;
+    protected final String uniqueInsertedAttribute = "wusiwug";
+    protected int searchDepth; //TODO: remove due to the new search engine does not need this. Wait until new search engine is proved to be good.
     protected int timeoutInMs;
     protected boolean exactMatchXpath;
 
@@ -488,20 +490,27 @@ class DomCore
         String displayedAnchor = anchorElement == null ? "" : cutText(anchorElement.toString(), 100, true);
         String displayedSearchElement = searchElement == null ? "" : cutText(searchElement.toString(), 100, true);
         logger.info(String.format("get element record for ANCHOR: '%s' and SEARCH ELEMENT '%s'",displayedAnchor, displayedSearchElement));
-        MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair =
-            getContainingTree(getElementRecordParam.anchorElement, getElementRecordParam.searchElement);
+
+        if(anchorElement == null || searchElement == null)
+        {
+            return null;
+        }
+
+        anchorElement.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
+        searchElement.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
+        MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair = getContainingTree(anchorElement, searchElement);
         ElementRecord currentFoundElementRecord = null;
 
         if(matchedElementPositionAndTreePair != null)
         {
             List<TreeElement> tree = matchedElementPositionAndTreePair.getValue();
             List<Integer> matchedElementPosition = matchedElementPositionAndTreePair.getKey();
-            TreeElement anchor = getFirstMatchedElementInTree(tree, new TreeElement(getElementRecordParam.anchorElement));
+            TreeElement anchor = getFirstMatchedElementInTreeByUniqueInsertedAttribute(tree, anchorElement);
 
             if(hasItem(matchedElementPosition) && anchor != null && hasItem(anchor.position))
             {
                 currentFoundElementRecord = new ElementRecord();
-                currentFoundElementRecord.element = getElementRecordParam.searchElement;
+                currentFoundElementRecord.element = searchElement;
                 currentFoundElementRecord.rootElement = getRootElement(tree).element;
                 currentFoundElementRecord.index = getElementRecordParam.searchElementIndex;
                 currentFoundElementRecord.distanceToAnchorElement = matchedElementPosition.size() + anchor.position.size() - 2;
@@ -517,32 +526,49 @@ class DomCore
         Element rootElement = anchorElement;
         TreeElement firstFound = null;
 
-        while(firstFound == null)
+        while(firstFound == null && rootElement != null)
         {
             elementTree = getElementTree(rootElement);
-            firstFound = getFirstMatchedElementInTree(elementTree, new TreeElement(searchElement));
+            firstFound = getFirstMatchedElementInTreeByUniqueInsertedAttribute(elementTree, searchElement);
 
             if(firstFound == null)
             {
-                if(rootElement == null)
-                {
-                    break;
-                }
-
                 rootElement = rootElement.parent();
+
+                if(rootElement != null)
+                {
+                    rootElement.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
+                }
             }
         }
 
         return firstFound == null ? null : new MapEntry<>(firstFound.position, elementTree);
     }
 
-    private TreeElement getFirstMatchedElementInTree(List<TreeElement> elementTree, TreeElement searchElement)
+    //TODO: poor performance - will be removed when getFirstMatchedElementInTreeByUniqueInsertedAttribute is proved to work better
+    private TreeElement getFirstMatchedElementInTree(List<TreeElement> elementTree, Element searchElement)
     {
         if(hasItem(elementTree))
         {
             for (TreeElement item : elementTree)
             {
-                if (elementEquals(item.element, searchElement.element))
+                if (elementEquals(item.element, searchElement))
+                {
+                    return item;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private TreeElement getFirstMatchedElementInTreeByUniqueInsertedAttribute(List<TreeElement> elementTree, Element searchElement)
+    {
+        if(hasItem(elementTree))
+        {
+            for (TreeElement item : elementTree)
+            {
+                if (elementEqualsByUniqueInsertedAttribute(item.element, searchElement))
                 {
                     return item;
                 }
@@ -560,7 +586,7 @@ class DomCore
 
         do
         {
-            if(elementEquals(currentParent, root))
+            if(elementEqualsByUniqueInsertedAttribute(currentParent, root))
             {
                 break;
             }
@@ -575,6 +601,7 @@ class DomCore
         return result;
     }
 
+    //TODO: poor performance - will be removed when elementEqualsByUniqueInsertedAttribute is proved to work better
     private boolean elementEquals(Element element1, Element element2)
     {
         Element parent1 = element1;
@@ -597,6 +624,15 @@ class DomCore
         }
 
         return true;
+    }
+
+    private boolean elementEqualsByUniqueInsertedAttribute(Element element1, Element element2)
+    {
+        return element1 != null
+               && element1.hasAttr(uniqueInsertedAttribute)
+               && element2 != null
+               && element2.hasAttr(uniqueInsertedAttribute)
+               && element1.attr(uniqueInsertedAttribute).equals(element2.attr(uniqueInsertedAttribute));
     }
 
     private String getTag(Element element)
