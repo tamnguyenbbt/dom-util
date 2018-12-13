@@ -4,14 +4,18 @@ import org.jsoup.nodes.Element;
 import java.util.ArrayList;
 import java.util.List;
 
-final class TreeElement
+public final class TreeElement
 {
     protected Element element;
-    protected List<Integer> position;
+    protected Position position;
+    protected String ownText;
+    protected boolean isAnchorCandidate;
+    protected List<TreeElement> elementsWithSameOwnText;
 
     protected TreeElement()
     {
-        position = new ArrayList<>();
+        position = new Position();
+        elementsWithSameOwnText = new ArrayList<>();
     }
 
     protected TreeElement(Element element)
