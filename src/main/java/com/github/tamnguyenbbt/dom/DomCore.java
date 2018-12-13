@@ -552,13 +552,13 @@ class DomCore
 
         anchorElement.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
         searchElement.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
-        MapEntry<List<Integer>, List<TreeElement>> matchedElementPositionAndTreePair = getContainingTree(anchorElement, searchElement);
+        MapEntry<Position, ElementTree> matchedElementPositionAndTreePair = getContainingTree(anchorElement, searchElement);
         ElementRecord currentFoundElementRecord = null;
 
         if(matchedElementPositionAndTreePair != null)
         {
-            List<TreeElement> tree = matchedElementPositionAndTreePair.getValue();
-            List<Integer> matchedElementPosition = matchedElementPositionAndTreePair.getKey();
+            ElementTree tree = matchedElementPositionAndTreePair.getValue();
+            Position matchedElementPosition = matchedElementPositionAndTreePair.getKey();
             TreeElement anchor = getFirstMatchedElementInTreeByUniqueInsertedAttribute(tree, anchorElement);
 
             if(hasItem(matchedElementPosition) && anchor != null && hasItem(anchor.position))
@@ -574,9 +574,9 @@ class DomCore
         return currentFoundElementRecord;
     }
 
-    private MapEntry<List<Integer>, List<TreeElement>> getContainingTree(Element anchorElement, Element searchElement)
+    private MapEntry<Position, ElementTree> getContainingTree(Element anchorElement, Element searchElement)
     {
-        List<TreeElement> elementTree = new ArrayList<>();
+        ElementTree elementTree = new ElementTree();
         Element rootElement = anchorElement;
         TreeElement firstFound = null;
 
@@ -600,7 +600,7 @@ class DomCore
     }
 
     //TODO: poor performance - will be removed when getFirstMatchedElementInTreeByUniqueInsertedAttribute is proved to work better
-    private TreeElement getFirstMatchedElementInTree(List<TreeElement> elementTree, Element searchElement)
+    private TreeElement getFirstMatchedElementInTree(ElementTree elementTree, Element searchElement)
     {
         if(hasItem(elementTree))
         {
@@ -616,7 +616,7 @@ class DomCore
         return null;
     }
 
-    private TreeElement getFirstMatchedElementInTreeByUniqueInsertedAttribute(List<TreeElement> elementTree, Element searchElement)
+    private TreeElement getFirstMatchedElementInTreeByUniqueInsertedAttribute(ElementTree elementTree, Element searchElement)
     {
         if(hasItem(elementTree))
         {
@@ -695,14 +695,51 @@ class DomCore
         return outerHtml == null ? null : outerHtml.substring(0, outerHtml.indexOf('>') + 1);
     }
 
-    private List<TreeElement> getElementTree(Element element)
+    private List<TreeElement> getTreeElementHavingTheSameOwnText(ElementTree tree, TreeElement element)
     {
-        List<TreeElement> tree = new ArrayList<>();
+        //TODO: write some code here
+        return null;
+    }
+
+    private ElementTree getDocumentTreeWithOwnText(Document document)
+    {
+        ElementTree tree = getDocumentTree(document);
+
+        if(hasItem(tree))
+        {
+            tree.forEach(x-> x.ownText = x.element.ownText());
+        }
+
+        return tree;
+    }
+
+    private ElementTree getDocumentTree(Document document)
+    {
+        ElementTree tree = new ElementTree();
+
+        if(document == null)
+        {
+            return tree;
+        }
+
+        Elements documentElements = document.select("html");
+
+        if(hasItem(documentElements))
+        {
+            tree = getElementTree(documentElements.get(0));
+        }
+
+        return tree;
+    }
+
+    private ElementTree getElementTree(Element element)
+    {
+        ElementTree tree = new ElementTree();
         TreeElement rootElement = new TreeElement();
         rootElement.position.add(0);
         rootElement.element = element;
         tree.add(rootElement);
-        List<TreeElement> allChildren = getAllChildren(element, rootElement.position);
+        ElementTree allChildren = getAllChildren(element, rootElement.position);
         tree.addAll(allChildren);
 
         return tree;
@@ -714,7 +751,7 @@ class DomCore
         return hasItem(elements) ? elements.first() : null;
     }
 
-    private TreeElement getRootElement(List<TreeElement> tree)
+    private TreeElement getRootElement(ElementTree tree)
     {
         List<Integer> rootPosition = new ArrayList<>();
         rootPosition.add(0);
@@ -730,9 +767,9 @@ class DomCore
         return null;
     }
 
-    private List<TreeElement> getAllChildren(Element element, List<Integer> startingPosition)
+    private ElementTree getAllChildren(Element element, Position startingPosition)
     {
-        List<TreeElement> result = new ArrayList<>();
+        ElementTree result = new ElementTree();
 
         if(element != null)
         {
@@ -743,11 +780,11 @@ class DomCore
                 for(int i = 0; i < children.size(); i++)
                 {
                     TreeElement treeElement = new TreeElement();
-                    treeElement.position = new ArrayList<>(startingPosition);
+                    treeElement.position = new Position(startingPosition);
                     treeElement.position.add(i);
                     treeElement.element = children.get(i);
                     result.add(treeElement);
-                    List<TreeElement> nextResult = getAllChildren(treeElement.element, treeElement.position);
+                    ElementTree nextResult = getAllChildren(treeElement.element, treeElement.position);
                     result.addAll(nextResult);
                 }
             }
