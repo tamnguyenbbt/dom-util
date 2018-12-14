@@ -16,9 +16,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 class DomCore
 {
@@ -31,6 +29,9 @@ class DomCore
     DomUtilConfig config;
     protected Logger logger =  Logger.getLogger(this.getClass().getName());
     private int searchDepth;
+    private boolean getAnchorsForAnchor = false;
+    private int shortestDistanceDepth = 5;
+    private IFunction<GetElementRecordParam, ElementRecord> getElementRecordFunc = this::getElementRecord;
 
     protected DomCore(DomUtilConfig config)
     {
@@ -95,72 +96,20 @@ class DomCore
 
     protected String buildXpath(Element anchorElement, ElementRecord record)
     {
-        String xpath = null;
-
         if(record == null || anchorElement == null)
         {
             return null;
         }
 
         Element rootElement = record.rootElement;
-        Element foundElement = record.element;
-        String foundElementName = getElementAttributeValue(record.element, "name");
-        String foundElementId = getElementAttributeValue(record.element, "id");
+        Element element = record.element;
+        MapEntry<String,String> xpaths = buildXpath(rootElement, anchorElement, element);
 
-        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement,
-                                                                                                      foundElement);
-        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement,
-                                                                                                       anchorElement);
-        String rootElementTagName = rootElement.tagName();
-        String anchorElementOwnText = anchorElement.ownText();
+        String xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
+            ? xpaths.getKey()
+            : xpaths.getValue();
 
-        if (xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
-        {
-            if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
-                        ? String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText)
-                        : String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
-            }
-            else if (xpathPartFromRootElementToAnchorElement == "")
-            {
-                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
-                    ? String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
-                                    xpathPartFromRootElementToFoundElement)
-                    : String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
-                                    xpathPartFromRootElementToFoundElement);
-            }
-            else if (xpathPartFromRootElementToFoundElement == "")
-            {
-                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
-                    ? String.format("//%s[%s[text()='%s']]", xpathPartFromRootElementToAnchorElement,
-                                    rootElementTagName, anchorElementOwnText)
-                    : String.format("//%s[%s[contains(text(),'%s')]]", xpathPartFromRootElementToAnchorElement,
-                                    rootElementTagName, anchorElementOwnText);
-            }
-            else
-            {
-                xpath = config.xpathBuildMethod == XpathBuildMethod.EqualText
-                    ? String.format("//%s[%s[text()='%s']]/%s",
-                                    rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
-                                    xpathPartFromRootElementToFoundElement)
-                    : String.format("//%s[%s[contains(text(),'%s')]]/%s",
-                                    rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
-                                    xpathPartFromRootElementToFoundElement);
-            }
-        }
-
-        if(foundElementName != null && config.xpathBuildOptions.contains(XpathBuildOption.AttachName))
-        {
-            xpath = String.format("%s[@name='%s']", xpath, foundElementName);
-        }
-
-        if(foundElementId != null && config.xpathBuildOptions.contains(XpathBuildOption.AttachId))
-        {
-            xpath = String.format("%s[@id='%s']", xpath, foundElementId);
-        }
-
-        return xpath;
+        return attachIdAndNameToXpath(element, xpath);
     }
 
     protected Elements getElements(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
@@ -207,6 +156,28 @@ class DomCore
         return null;
     }
 
+    protected Attribute getAttributeByName(Element element, String name)
+    {
+        if(element == null)
+        {
+            return null;
+        }
+
+        List<Attribute> anchorAttributes = element.attributes().asList();
+
+        for(Attribute item : anchorAttributes)
+        {
+            String attributeKey = item.getKey();
+
+            if(attributeKey.equalsIgnoreCase(name))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
     protected List<ElementRecord> getElementRecords(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
     {
         List<ElementRecord> result;
@@ -227,6 +198,11 @@ class DomCore
         }
 
         return result;
+    }
+
+    protected <K,V> boolean hasItem(Map<K,V> map)
+    {
+        return (map != null && !map.isEmpty());
     }
 
     protected <T> boolean hasItem(List<T> list)
@@ -535,8 +511,6 @@ class DomCore
         return result;
     }
 
-    private IFunction<GetElementRecordParam, ElementRecord> getElementRecordFunc = this::getElementRecord;
-
     private ElementRecord getElementRecord(GetElementRecordParam getElementRecordParam)
     {
         Element anchorElement = getElementRecordParam == null ? null : getElementRecordParam.anchorElement;
@@ -695,25 +669,406 @@ class DomCore
         return outerHtml == null ? null : outerHtml.substring(0, outerHtml.indexOf('>') + 1);
     }
 
-    private List<TreeElement> getTreeElementHavingTheSameOwnText(ElementTree tree, TreeElement element)
+    public void gatherDataForDocumentTree(ElementTree documentTree)
     {
-        //TODO: write some code here
+        List<TreeElement> anchors = updateAsAnchorCandidatePropertyForTree(documentTree);
+        updateDistancesAndLinksToAnchorsForElementTree(anchors, documentTree);
+        updateXpathsForElementTree(documentTree);
+    }
+
+    private void updateXpathsForElementTree(ElementTree documentTree)
+    {
+        if(hasItem(documentTree))
+        {
+            documentTree.forEach(x -> updateTreeElementXpaths(x, documentTree));
+        }
+    }
+
+    private void updateTreeElementXpaths(TreeElement treeElement, ElementTree documentTree)
+    {
+        if(treeElement != null && treeElement.element != null)
+        {
+            Element element = treeElement.element;
+
+            if(treeElement.asAnchorCandidate)
+            {
+                treeElement.uniqueXpaths.add(String.format("//%s[text()='%s']", element.tagName(), element.ownText()));
+                treeElement.leastRefactoredXpaths.add(String.format("//%s[contains(text(),'%s')]", element.tagName(), removeLineSeparators(element.ownText()).trim()));
+            }
+            else
+            {
+                if(hasItem(treeElement.linkedAnchors))
+                {
+                    Map.Entry<TreeElement, Attribute> linkedAnchorAndElementAttribute = treeElement.linkedAnchors.entrySet().iterator().next();
+                    TreeElement linkedAnchor = linkedAnchorAndElementAttribute.getKey();
+                    Position rootPositionForLinkedAnchor = getRootPositionForLinkedAnchor(linkedAnchor, treeElement);
+                    TreeElement rootElement = getRootElementByRootPosition(documentTree, rootPositionForLinkedAnchor);
+                    rootElement.element.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
+                    MapEntry<String,String> xpaths = buildXpath(rootElement.element, linkedAnchor.element, treeElement.element);
+                    treeElement.uniqueXpaths.add(xpaths.getKey());
+                    treeElement.leastRefactoredXpaths.add(xpaths.getValue());
+                }
+                else
+                {
+                    List<TreeElement> anchors = getAnchorsByShortestDistanceDepth(treeElement);
+
+                    if(hasItem(anchors))
+                    {
+                        anchors.forEach(x -> {
+                            Position rootPosition = getRootElementPosition(x, treeElement);
+                            TreeElement rootElement = getRootElementByRootPosition(documentTree, rootPosition);
+                            rootElement.element.attr(uniqueInsertedAttribute, UUID.randomUUID().toString());
+                            MapEntry<String,String> xpaths = buildXpath(rootElement.element, x.element, treeElement.element);
+                            treeElement.uniqueXpaths.add(xpaths.getKey());
+                            treeElement.leastRefactoredXpaths.add(xpaths.getValue());
+                        });
+                    }
+                }
+            }
+
+            treeElement.uniqueXpathsWithAttributes = attachIdAndNameToXpaths(treeElement.element, treeElement.uniqueXpaths);
+            treeElement.leastRefactoredXpathsWithAttributes = attachIdAndNameToXpaths(treeElement.element, treeElement.leastRefactoredXpaths);
+        }
+    }
+
+    private List<TreeElement> getAnchorsByShortestDistanceDepth(TreeElement treeElement)
+    {
+        List<Integer> shortestDistances  = getNonDuplicatedShortestDistancesToAnchors(treeElement);
+        List<TreeElement> result = new ArrayList<>();
+
+        if(treeElement != null && hasItem(treeElement.distancesToAnchors) && hasItem(shortestDistances))
+        {
+            Set<Map.Entry<TreeElement, Integer>> distancesToAnchors = treeElement.distancesToAnchors.entrySet();
+
+            for (Map.Entry<TreeElement, Integer> item : distancesToAnchors)
+            {
+                int distance = item.getValue();
+
+                if(matchDistance(distance, shortestDistances))
+                {
+                    result.add(item.getKey());
+                }
+
+            }
+        }
+
+        return result;
+    }
+
+    private boolean matchDistance(int distance, List<Integer> patterns)
+    {
+        if(hasItem(patterns))
+        {
+            for (Integer item : patterns)
+            {
+                if(distance == item)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private List<Integer> getNonDuplicatedShortestDistancesToAnchors(TreeElement treeElement)
+    {
+        List<Integer> distances = getDistancesToAnchors(treeElement);
+        Set<Integer> set = new HashSet<>();
+        set.addAll(distances);
+        distances.clear();
+        distances.addAll(set);
+        Collections.sort(distances);
+        return new ArrayList<>(distances.subList(0, shortestDistanceDepth - 1));
+    }
+
+    private List<Integer> getDistancesToAnchors(TreeElement treeElement)
+    {
+        List<Integer> distances = new ArrayList<>();
+
+        if(treeElement != null && hasItem(treeElement.distancesToAnchors))
+        {
+            Set<Map.Entry<TreeElement, Integer>> distancesToAnchors = treeElement.distancesToAnchors.entrySet();
+
+            for (Map.Entry<TreeElement, Integer> item : distancesToAnchors)
+            {
+                distances.add(item.getValue());
+            }
+        }
+
+        return distances;
+    }
+
+    private MapEntry<String,String> buildXpath(Element rootElement, Element anchorElement, Element element)
+    {
+        String uniqueXpath = null;
+        String leastRefactoredXpath = null;
+        String xpathPartFromRootElementToFoundElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, element);
+        String xpathPartFromRootElementToAnchorElement = buildXpathPartBetweenRootAndLeafExcludingRoot(rootElement, anchorElement);
+        String rootElementTagName = rootElement.tagName();
+        String anchorElementOwnText = anchorElement.ownText();
+
+        if (xpathPartFromRootElementToFoundElement != null && xpathPartFromRootElementToAnchorElement != null)
+        {
+            if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
+            {
+                uniqueXpath = String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText);
+                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+            }
+            else if (xpathPartFromRootElementToAnchorElement == "")
+            {
+                uniqueXpath = String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
+                                            xpathPartFromRootElementToFoundElement);
+                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
+                                                     xpathPartFromRootElementToFoundElement);
+            }
+            else if (xpathPartFromRootElementToFoundElement == "")
+            {
+                uniqueXpath = String.format("//%s[%s[text()='%s']]",
+                                            rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText);
+                leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]",
+                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText);
+            }
+            else
+            {
+                uniqueXpath =  String.format("//%s[%s[text()='%s']]/%s",
+                                             rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
+                                             xpathPartFromRootElementToFoundElement);
+                leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
+                                                     xpathPartFromRootElementToFoundElement);
+            }
+        }
+
+        return new MapEntry<>(uniqueXpath, leastRefactoredXpath);
+    }
+
+    private List<String> attachIdAndNameToXpaths(Element element, List<String> xpaths)
+    {
+        List<String> result = new ArrayList<>();
+
+        if(element != null && hasItem(xpaths))
+        {
+            xpaths.forEach(x -> result.add(attachIdAndNameToXpath(element, x)));
+        }
+
+        return result;
+    }
+
+    private String attachIdAndNameToXpath(Element element, String xpath)
+    {
+        String xpathWithAttributes = xpath;
+
+        if(element != null && element != null)
+        {
+            Attribute idAttribute = getAttributeByName(element, "id");
+            Attribute nameAttribute = getAttributeByName(element, "name");
+
+            if(xpath != null)
+            {
+                if(idAttribute != null)
+                {
+                    xpathWithAttributes = String.format("%s[@id='%s']", xpathWithAttributes, idAttribute.getValue());
+                }
+
+                if(nameAttribute != null)
+                {
+                    xpathWithAttributes = String.format("%s[@name='%s']", xpathWithAttributes, nameAttribute.getValue());
+                }
+            }
+        }
+
+        return xpathWithAttributes;
+    }
+
+    private Position getRootPositionForLinkedAnchor(TreeElement linkedAnchor, TreeElement treeElement)
+    {
+        if(treeElement != null && linkedAnchor != null && hasItem(treeElement.rootPositionsForAnchors))
+        {
+            Set<Map.Entry<TreeElement, Position>> rootPositionsForAnchors = treeElement.rootPositionsForAnchors.entrySet();
+
+            for (Map.Entry<TreeElement, Position> item : rootPositionsForAnchors)
+            {
+                if(item.getKey().id.equals(linkedAnchor.id))
+                {
+                    return item.getValue();
+                }
+            }
+        }
+
         return null;
     }
 
-    private ElementTree getDocumentTreeWithOwnText(Document document)
+    private void updateAnchorsLinksAndDistancesForDocumentTree(ElementTree documentTree)
     {
-        ElementTree tree = getDocumentTree(document);
-
-        if(hasItem(tree))
-        {
-            tree.forEach(x-> x.ownText = x.element.ownText());
-        }
-
-        return tree;
+        List<TreeElement> anchors = updateAsAnchorCandidatePropertyForTree(documentTree);
+        updateDistancesAndLinksToAnchorsForElementTree(anchors, documentTree);
     }
 
-    private ElementTree getDocumentTree(Document document)
+    private void updateDistancesAndLinksToAnchorsForElementTree(List<TreeElement> anchors, ElementTree elementTree)
+    {
+        if(hasItem(anchors) && hasItem(elementTree))
+        {
+            elementTree.forEach(x->updateTreeElementDistancesAndLinksToAnchors(anchors, x));
+        }
+    }
+
+    private void updateTreeElementDistancesAndLinksToAnchors(List<TreeElement> anchors, TreeElement treeElement)
+    {
+        if(hasItem(anchors) && treeElement != null)
+        {
+            anchors.forEach(x -> {
+
+                if(!treeElement.asAnchorCandidate ||(treeElement.asAnchorCandidate && getAnchorsForAnchor))
+                {
+                    treeElement.distancesToAnchors.put(x, getDistanceFromElementToAnchor(x, treeElement));
+                    treeElement.rootPositionsForAnchors.put(x, getRootElementPosition(x, treeElement));
+                    Attribute linkedAttribute = getElementAttributeLinkedToAnchor(x, treeElement);
+
+                    if(linkedAttribute != null)
+                    {
+                        treeElement.linkedAnchors.put(x, linkedAttribute);
+                    }
+                }
+            });
+        }
+    }
+
+    private Attribute getElementAttributeLinkedToAnchor(TreeElement anchor, TreeElement treeElement)
+    {
+        if(anchor != null && treeElement != null)
+        {
+            Attribute anchorForAttribute = getAttributeByNameContainingPattern(anchor.element, "for");
+
+            if(anchorForAttribute != null)
+            {
+                String anchorForAttributeValue = anchorForAttribute.getValue();
+                Attribute elementIdAttribute = getAttributeByName(treeElement.element, "id");
+
+                if (elementIdAttribute != null && elementIdAttribute.getValue() != null && elementIdAttribute.getValue().trim().equalsIgnoreCase(anchorForAttributeValue))
+                {
+                    return elementIdAttribute;
+                }
+                else
+                {
+                    Attribute elementNameAttribute = getAttributeByName(treeElement.element, "name");
+
+                    if(elementNameAttribute != null && elementNameAttribute.getValue() != null && elementNameAttribute.getValue().trim().equals(anchorForAttributeValue))
+                    {
+                        return elementNameAttribute;
+                    }
+                }
+            }
+        }
+
+       return null;
+    }
+
+    private int getDistanceFromElementToAnchor(TreeElement anchor, TreeElement treeElement)
+    {
+        Position rootPosition = getRootElementPosition(anchor, treeElement);
+        return anchor != null && hasItem(anchor.position) && treeElement != null &&
+               hasItem(treeElement.position) && hasItem(rootPosition)
+            ? anchor.position.size() + treeElement.position.size() - 2 * rootPosition.size()
+            : 0;
+    }
+
+    private TreeElement getRootElementByRootPosition(ElementTree documentTree, Position rootPosition)
+    {
+        if(hasItem(documentTree) && hasItem(rootPosition))
+        {
+            for (TreeElement item : documentTree)
+            {
+                if(hasItem(item.position) && item.position.equals(rootPosition))
+                {
+                    return item;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Position getRootElementPosition(TreeElement anchor, TreeElement treeElement)
+    {
+        Position rootPosition = new Position();
+
+        if(anchor != null && hasItem(anchor.position) && treeElement != null && hasItem(treeElement.position))
+        {
+            Position anchorPosition = anchor.position;
+            Position elementPosition = treeElement.position;
+
+            for(int i = 0; i < anchorPosition.size(); i++)
+            {
+                if(i < elementPosition.size() && anchorPosition.get(i).equals(elementPosition.get(i)))
+                {
+                    rootPosition.add(anchorPosition.get(i));
+                }
+                else if(i < elementPosition.size() && !anchorPosition.get(i).equals(elementPosition.get(i)))
+                {
+                    break;
+                }
+            }
+        }
+
+        return rootPosition;
+    }
+
+    private  List<TreeElement> updateAsAnchorCandidatePropertyForTree(ElementTree documentTree)
+    {
+        List<TreeElement> anchors = new ArrayList<>();
+        documentTree.forEach(x -> {
+            updateAsAnchorCandidatePropertyForTreeElement(documentTree, x);
+
+            if(x.asAnchorCandidate)
+            {
+                anchors.add(x);
+            }
+        });
+
+        return anchors;
+    }
+
+    private void updateAsAnchorCandidatePropertyForTreeElement(ElementTree documentTree, TreeElement treeElement)
+    {
+        if(treeElement != null)
+        {
+            List<TreeElement> elementsWithSameOwnText = getTreeElementsHavingTheSameOwnText(documentTree, treeElement);
+
+            if(elementsWithSameOwnText.size() > 1)
+            {
+                treeElement.elementsWithSameOwnText = elementsWithSameOwnText;
+            }
+
+            if(elementsWithSameOwnText.size() == 1 && treeElement.element != null &&
+               treeElement.element.ownText() != null && !treeElement.element.ownText().trim().equals(""))
+            {
+                treeElement.asAnchorCandidate = true;
+            }
+        }
+    }
+
+    private List<TreeElement> getTreeElementsHavingTheSameOwnText(ElementTree documentTree, TreeElement treeElement)
+    {
+        List<TreeElement> result = new ArrayList<>();
+
+        if(hasItem(documentTree) && treeElement != null)
+        {
+            documentTree.forEach(x -> {
+
+                if(x != null && x.element != null && x.element.ownText() != null &&
+                   treeElement.element != null && treeElement.element.ownText() != null &&
+                   !treeElement.element.ownText().trim().equals("") && x.element.ownText().equals(treeElement.element.ownText()))
+                {
+                    result.add(x);
+                }
+            });
+        }
+
+        return result;
+    }
+
+    public ElementTree getDocumentTree(Document document)
     {
         ElementTree tree = new ElementTree();
 
