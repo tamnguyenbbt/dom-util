@@ -305,16 +305,32 @@ class DomInternal extends DomCore
                             String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
-        List<String> xpaths = getXpaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery,
-                                        searchMethod, bestEffort);
-        int xpathCount = xpaths.size();
+        String xpath = getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, searchMethod, bestEffort);
 
-        if (xpathCount > 1)
+        if(xpath == null)
         {
-            throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
+            try
+            {
+                xpath = getXpath(document, new ElementInfo(anchorElementTagName, anchorElementOwnText, true),
+                        new ElementInfo(searchCssQuery), searchMethod, bestEffort);
+            }
+            catch(AnchorIndexIfMultipleFoundOutOfBoundException e){}
         }
 
-        return hasNoItem(xpaths) ? null : xpaths.get(0);
+        return xpath;
+    }
+
+
+    protected String getXpathExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText,
+                              String searchCssQuery, SearchMethod searchMethod, boolean bestEffort)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        try
+        {
+            return getXpath(document, new ElementInfo(anchorElementTagName, anchorElementOwnText),
+                    new ElementInfo(searchCssQuery), searchMethod, bestEffort);
+        }
+        catch(AnchorIndexIfMultipleFoundOutOfBoundException e){ return null; }
     }
 
     protected String getXpath(Document document, Elements anchorElements, ElementInfo searchElementInfo,

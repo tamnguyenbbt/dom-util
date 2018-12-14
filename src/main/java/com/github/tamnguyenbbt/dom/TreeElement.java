@@ -1,8 +1,10 @@
+package com.github.tamnguyenbbt.dom;
+
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Element;
 import java.util.*;
 
-public final class TreeElement
+final class TreeElement
 {
     protected UUID id;
     protected Element element;
