@@ -81,7 +81,7 @@ public class DomUtilTest
     public void getXPaths() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -98,7 +98,7 @@ public class DomUtilTest
     public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -138,7 +138,7 @@ public class DomUtilTest
     public void getXPath() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@name='Username'][@id='username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
