@@ -117,7 +117,7 @@ class DomInternal extends DomCore
         List<WebElement> webElement = getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
                                                                       anchorElementTagName, anchorElementOwnText, searchCssQuery, bestEffort);
 
-        if(hasNoItem(webElement))
+        if(Util.hasNoItem(webElement))
         {
             try
             {
@@ -266,14 +266,14 @@ class DomInternal extends DomCore
     {
         Elements searchElements = document.select(searchCssQuery);
 
-        if (hasNoItem(searchElements))
+        if (Util.hasNoItem(searchElements))
         {
             return null;
         }
 
         Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
 
-        if (hasItem(anchorElementsByLink))
+        if (Util.hasItem(anchorElementsByLink))
         {
             Elements activeAnchorElementsByLink = getActiveAnchorElements(anchorElementsByLink, anchorElementInfo);
             int activeAnchorElementsByLinkCount = activeAnchorElementsByLink.size();
@@ -288,7 +288,7 @@ class DomInternal extends DomCore
 
         Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLink, bestEffort);
 
-        if (hasItem(elementsByLink))
+        if (Util.hasItem(elementsByLink))
         {
             Elements anchorElements = getElementsByTagNameMatchingOwnText(document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
             Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
@@ -345,7 +345,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
         }
 
-        return hasNoItem(xpaths) ? null : xpaths.get(0);
+        return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
     protected String getXpath(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo,
@@ -361,7 +361,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
         }
 
-        return hasNoItem(xpaths) ? null : xpaths.get(0);
+        return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
     protected String getXpath(Elements anchorElements, Elements searchElements, SearchMethod searchMethod,
@@ -376,7 +376,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
         }
 
-        return hasNoItem(xpaths) ? null : xpaths.get(0);
+        return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
     protected String getXpath(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
@@ -390,7 +390,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundXpathsException(String.format(ambiguousFoundXpathMessage, xpathCount));
         }
 
-        return hasNoItem(xpaths) ? null : xpaths.get(0);
+        return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
     protected List<String> getXpaths(Document document, String anchorElementTagName, String anchorElementOwnText,
@@ -431,7 +431,7 @@ class DomInternal extends DomCore
     {
         List<String> result = new ArrayList<>();
 
-        if (hasItem(anchorElements) && hasItem(searchElements))
+        if (Util.hasItem(anchorElements) && Util.hasItem(searchElements))
         {
             int anchorElementCount = anchorElements.size();
 
@@ -444,7 +444,7 @@ class DomInternal extends DomCore
             {
                 result = getXpaths(item, searchElements, searchMethod);
 
-                if (hasItem(result))
+                if (Util.hasItem(result))
                 {
                     break;
                 }
@@ -484,7 +484,7 @@ class DomInternal extends DomCore
         List<String> xpathList = new ArrayList<>();
         List<ElementRecord> finalFoundRecords = getElementRecords(anchorElement, searchElements, searchMethod);
 
-        if (hasNoItem(finalFoundRecords))
+        if (Util.hasNoItem(finalFoundRecords))
         {
             return xpathList;
         }
@@ -597,14 +597,14 @@ class DomInternal extends DomCore
     {
         Elements searchElements = document.select(searchCssQuery);
 
-        if (hasNoItem(searchElements))
+        if (Util.hasNoItem(searchElements))
         {
             return null;
         }
 
         Elements anchorElementsByLink = getElements(document, parentAnchorElementInfo, anchorElementInfo, SearchMethod.ByLink, bestEffort);
 
-        if (hasItem(anchorElementsByLink))
+        if (Util.hasItem(anchorElementsByLink))
         {
             Elements activeAnchorElementsByLink = getActiveAnchorElements(anchorElementsByLink, anchorElementInfo);
             int activeAnchorElementsByLinkCount = activeAnchorElementsByLink.size();
@@ -621,7 +621,7 @@ class DomInternal extends DomCore
         Elements elementsByLink = getElements(document, parentAnchorElementInfo, new ElementInfo(searchCssQuery),
                 SearchMethod.ByLink, bestEffort);
 
-        if (hasItem(elementsByLink))
+        if (Util.hasItem(elementsByLink))
         {
             Elements anchorElements = getElementsByTagNameMatchingOwnText(
                     document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
@@ -670,7 +670,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return hasNoItem(elements) ? null : elements.get(0);
+        return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
     protected Element getElement(Document document, Elements anchorElements, ElementInfo searchElementInfo,
@@ -685,7 +685,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return hasNoItem(elements) ? null : elements.get(0);
+        return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
     protected Element getElement(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod, boolean bestEffort)
@@ -699,7 +699,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return hasNoItem(elements) ? null : elements.get(0);
+        return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
     protected Element getElement(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, boolean bestEffort)
@@ -713,7 +713,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return hasNoItem(elements) ? null : elements.get(0);
+        return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
     protected Element getElement(Element anchorElement, Elements searchElements, SearchMethod searchMethod)
@@ -727,7 +727,7 @@ class DomInternal extends DomCore
             throw new AmbiguousFoundElementsException(String.format(ambiguousFoundElementsMessage, elementCount));
         }
 
-        return hasNoItem(elements) ? null : elements.get(0);
+        return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
     protected Elements getElements(Document document, String anchorElementTagName, String anchorElementOwnText,
@@ -737,7 +737,7 @@ class DomInternal extends DomCore
         Elements elements = getElementsExactMatch(document, anchorElementTagName, anchorElementOwnText,
                                                            searchCssQuery, searchMethod, bestEffort);
 
-        if(hasNoItem(elements))
+        if(Util.hasNoItem(elements))
         {
             ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
 
@@ -789,7 +789,7 @@ class DomInternal extends DomCore
     {
         Elements result = new Elements();
 
-        if (hasItem(anchorElements) && hasItem(searchElements))
+        if (Util.hasItem(anchorElements) && Util.hasItem(searchElements))
         {
             int anchorElementCount = anchorElements.size();
 
@@ -802,7 +802,7 @@ class DomInternal extends DomCore
             {
                 result = getElements(item, searchElements, searchMethod);
 
-                if (hasItem(result))
+                if (Util.hasItem(result))
                 {
                     break;
                 }
@@ -889,7 +889,7 @@ class DomInternal extends DomCore
         List<WebElement> foundWebElements = findWebElements(driver, xpath);
         int pollingEveryInMs = config.webDriverTimeoutInMilliseconds / 10;
 
-        if (hasItem(foundWebElements))
+        if (Util.hasItem(foundWebElements))
         {
             if (foundWebElements.size() > 1)
             {
@@ -956,7 +956,7 @@ class DomInternal extends DomCore
     {
         Elements result = new Elements();
 
-        if (hasItem(elements))
+        if (Util.hasItem(elements))
         {
             for (Element item : elements)
             {

@@ -13,4 +13,10 @@ final class Position extends ArrayList<Integer>
     {
         super(position);
     }
+
+    protected Position getParentPosition()
+    {
+        int size = this.size();
+        return size > 1 ? new Position((Position)this.subList(0, size-2)) : null;
+    }
 }

@@ -31,6 +31,21 @@ public class DomUtil extends DomInternal
     {
     }
 
+    public Tree getDocumentTree(Document document)
+    {
+        if(document != null)
+        {
+            return new Tree(document);
+        }
+
+        return null;
+    }
+
+    public void gatherDataForDocumentTree(Tree documentTree)
+    {
+        super.gatherDataForDocumentTree(documentTree);
+    }
+
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, String parentAnchorElementOwnText,
                                                             String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousFoundWebElementsException
@@ -636,7 +651,7 @@ public class DomUtil extends DomInternal
 
         List<WebElement> foundWebElements = driver.findElements(By.xpath(xpath));
 
-        if (hasItem(foundWebElements))
+        if (Util.hasItem(foundWebElements))
         {
             int numberOfIndexedXpaths = foundWebElements.size();
 

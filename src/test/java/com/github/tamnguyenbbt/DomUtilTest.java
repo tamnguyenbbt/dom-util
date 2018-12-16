@@ -2,6 +2,7 @@ package com.github.tamnguyenbbt;
 
 import com.github.tamnguyenbbt.dom.DomUtil;
 import com.github.tamnguyenbbt.dom.ElementInfo;
+import com.github.tamnguyenbbt.dom.Tree;
 import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Document;
@@ -51,9 +52,11 @@ public class DomUtilTest
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
+        Tree documentTree = domUtil.getDocumentTree(document);
 
         //Act
         List<Element> elements = domUtil.getElementsByTagNameMatchingOwnText(document, "div", "Username");
+        domUtil.gatherDataForDocumentTree(documentTree);
 
         //Assert
         Assert.assertTrue(elements != null);
