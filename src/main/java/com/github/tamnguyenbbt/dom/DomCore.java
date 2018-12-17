@@ -2,6 +2,7 @@ package com.github.tamnguyenbbt.dom;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.util.*;
@@ -34,6 +35,16 @@ class DomCore
     protected DomCore()
     {
         config = new DomUtilConfig();
+    }
+
+    public Tree getDocumentTree(Document document)
+    {
+        if(document != null)
+        {
+            return new Tree(document);
+        }
+
+        return null;
     }
 
     protected Elements getElements(Element anchorElement, Elements searchElements, SearchMethod searchMethod)

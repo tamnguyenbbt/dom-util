@@ -52,11 +52,9 @@ public class DomUtilTest
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
-        Tree documentTree = domUtil.getDocumentTree(document);
 
         //Act
         List<Element> elements = domUtil.getElementsByTagNameMatchingOwnText(document, "div", "Username");
-        domUtil.gatherDataForDocumentTree(documentTree);
 
         //Assert
         Assert.assertTrue(elements != null);
@@ -229,5 +227,16 @@ public class DomUtilTest
 
         //Assert
         Assert.assertNull(firstName);
+    }
+
+    @Test
+    public void getDocumentTree() throws IOException
+    {
+        //Arrange
+        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
+        Document document = domUtil.htmlFileToDocument(resourcePath);
+
+        //Act
+        Tree documentTree = domUtil.getDocumentTree(document);
     }
 }

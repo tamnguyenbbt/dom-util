@@ -8,7 +8,6 @@ import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,16 +50,6 @@ public class DomUtil extends DomInternal
         }
 
         return document;
-    }
-
-    public Tree getDocumentTree(Document document)
-    {
-        if(document != null)
-        {
-            return new Tree(document);
-        }
-
-        return null;
     }
 
     /**region get web element from document by two anchors
@@ -114,6 +103,57 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
         return getWebElementWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
+                                                            String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        return getWebElementWithTwoAnchorsExactMatchBestEffort(driver, parentAnchorElementOwnText,
+                null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementOwnText,
+                                                  String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementOwnText,
+                null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
+                                                            String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        return getWebElementWithTwoAnchorsExactMatchBestEffort(driver, null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementOwnText,
+                                                  String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementWithTwoAnchorsExactMatch(driver, null, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                            String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        try
+        {
+            return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e) { return null; }
+    }
+
+    public WebElement getWebElementWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                  String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
     }
 
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
@@ -271,6 +311,57 @@ public class DomUtil extends DomInternal
     {
         return getWebElementsWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
                                             anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
+                                                                   String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchorsExactMatchBestEffort(driver, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementOwnText,
+                                                         String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
+                                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchorsExactMatchBestEffort(driver, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementOwnText,
+                                                         String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchorsExactMatch(driver, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundWebElementsException
+    {
+        try
+        {
+            return getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<WebElement> getWebElementsWithTwoAnchorsExactMatch(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                         String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
+    {
+        return getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
     }
 
     public List<WebElement> getWebElementsWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
@@ -580,6 +671,37 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+    }
+
+    public String getXpathExactMatchBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundXpathsException
+    {
+        return getXpathExactMatchBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public String getXpathExactMatch(Document document, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathExactMatch(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public String getXpathExactMatchBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousFoundXpathsException
+    {
+        try
+        {
+            return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return null;
+        }
+    }
+
+    public String getXpathExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+            throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
+    {
+        return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
     }
 
     public String getXpathBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
