@@ -15,6 +15,7 @@ public class DomUtilConfig
         xpathBuildOptions = new ArrayList<>();
         xpathBuildOptions.add(XpathBuildOption.AttachId);
         xpathBuildOptions.add(XpathBuildOption.AttachName);
+        xpathBuildOptions.add(XpathBuildOption.IncludeTagIndex);
         webDriverTimeoutInMilliseconds = 2000;
     }
 }
