@@ -1,6 +1,7 @@
 package com.github.tamnguyenbbt.dom;
 
 import java.util.ArrayList;
+import java.util.List;
 
 final class Position extends ArrayList<Integer>
 {
@@ -14,9 +15,14 @@ final class Position extends ArrayList<Integer>
         super(position);
     }
 
+    private Position(List<Integer> position)
+    {
+        super(position);
+    }
+
     protected Position getParentPosition()
     {
         int size = this.size();
-        return size > 1 ? new Position((Position)this.subList(0, size-2)) : null;
+        return size > 1 ? new Position(this.subList(0, size-1)) : null;
     }
 }
