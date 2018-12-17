@@ -83,7 +83,7 @@ final class ElementRecords extends ArrayList<ElementRecord>
         Element searchElement = getElementRecordParam == null ? null : getElementRecordParam.searchElement;
         String displayedAnchor = anchorElement == null ? "" : Util.cutText(anchorElement.toString(), 100, true);
         String displayedSearchElement = searchElement == null ? "" : Util.cutText(searchElement.toString(), 100, true);
-        logger.info(String.format(" - creating element record for ANCHOR: '%s' and SEARCH ELEMENT '%s'",displayedAnchor, displayedSearchElement));
+        logger.info(String.format("  creating element record for ANCHOR: '%s' and SEARCH ELEMENT '%s'",displayedAnchor, displayedSearchElement));
 
         if(anchorElement == null || searchElement == null)
         {
