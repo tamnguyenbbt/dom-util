@@ -350,9 +350,9 @@ public class Tree extends ArrayList<TreeElement>
         List<TreeElement> anchors = new ArrayList<>();
 
         this.forEach(x -> {
-            List<TreeElement> elementsHavingSameownText = getTreeElementsHavingSameOwnText(x);
-            x.setElementsWithSameOwnText(elementsHavingSameownText);
-            x.setAsAnchorCandidate(elementsHavingSameownText);
+            List<TreeElement> elementsHavingSameOwnText = getTreeElementsHavingSameOwnText(x);
+            x.setElementsWithSameOwnText(elementsHavingSameOwnText);
+            x.setAsAnchorCandidate(elementsHavingSameOwnText);
 
             if(x.asAnchorCandidate)
             {
