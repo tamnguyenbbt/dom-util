@@ -247,6 +247,7 @@ public class Tree extends ArrayList<TreeElement>
         return xpathBuilder.toString();
     }
 
+    // not a good return pattern but for better performance (reducing 1 loop) and private then OK
     private MapEntry<List<TreeElement>, List<TreeElement>> getSiblings(TreeElement treeElement, boolean sameTagName)
     {
         List<TreeElement> youngerSiblings = new ArrayList<>();
