@@ -134,8 +134,13 @@ public class Tree extends ArrayList<TreeElement>
                 }
             }
 
-            treeElement.uniqueXpathsWithAttributes = treeElement.attachIdAndNameToXpaths(treeElement.uniqueXpaths);
-            treeElement.leastRefactoredXpathsWithAttributes = treeElement.attachIdAndNameToXpaths(treeElement.leastRefactoredXpaths);
+            List<String> patterns = new ArrayList<>();
+            patterns.add("id");
+            patterns.add("name");
+            treeElement.uniqueXpathsWithAttributes =
+                    treeElement.attachAttributesByNamePatternsToXpaths(treeElement.uniqueXpaths, patterns, GetAttributeMethod.ByNameOrByNameContainingPattern);
+            treeElement.leastRefactoredXpathsWithAttributes =
+                    treeElement.attachAttributesByNamePatternsToXpaths(treeElement.leastRefactoredXpaths, patterns, GetAttributeMethod.ByNameOrByNameContainingPattern);
         }
     }
 
@@ -163,13 +168,13 @@ public class Tree extends ArrayList<TreeElement>
             if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
                 uniqueXpath = String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText);
-                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]", rootElementTagName, anchorElementOwnText);
+                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim());
             }
             else if (xpathPartFromRootElementToAnchorElement == "")
             {
                 uniqueXpath = String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
                                             xpathPartFromRootElementToFoundElement);
-                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, anchorElementOwnText,
+                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim(),
                                                      xpathPartFromRootElementToFoundElement);
             }
             else if (xpathPartFromRootElementToFoundElement == "")
@@ -177,7 +182,7 @@ public class Tree extends ArrayList<TreeElement>
                 uniqueXpath = String.format("//%s[%s[text()='%s']]",
                                             rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText);
                 leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]",
-                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText);
+                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, Util.removeLineSeparators(anchorElementOwnText).trim());
             }
             else
             {
@@ -185,7 +190,7 @@ public class Tree extends ArrayList<TreeElement>
                                              rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
                                              xpathPartFromRootElementToFoundElement);
                 leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
-                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
+                                                     rootElementTagName, xpathPartFromRootElementToAnchorElement, Util.removeLineSeparators(anchorElementOwnText).trim(),
                                                      xpathPartFromRootElementToFoundElement);
             }
         }
@@ -219,11 +224,17 @@ public class Tree extends ArrayList<TreeElement>
 
             if(includeTagIndex && Util.hasItem(treeElement.position))
             {
-                List<TreeElement> siblings = getSiblings(treeElement, true, true);
+                MapEntry<List<TreeElement>, List<TreeElement>> siblings = getSiblings(treeElement, true);
+                List<TreeElement> youngerSiblings = siblings.getKey();
+                List<TreeElement> olderSiblings = siblings.getValue();
 
-                if(Util.hasItem(siblings))
+                if(Util.hasItem(olderSiblings))
                 {
-                    xpathBuilder.append(String.format("[%s]", siblings.size() + 1));
+                    xpathBuilder.append(String.format("[%s]", olderSiblings.size() + 1));
+                }
+                else if(Util.hasItem(youngerSiblings))
+                {
+                    xpathBuilder.append(String.format("[%s]", 1));
                 }
             }
 
@@ -236,9 +247,10 @@ public class Tree extends ArrayList<TreeElement>
         return xpathBuilder.toString();
     }
 
-    protected List<TreeElement> getSiblings(TreeElement treeElement, boolean sameTagName, boolean elder)
+    private MapEntry<List<TreeElement>, List<TreeElement>> getSiblings(TreeElement treeElement, boolean sameTagName)
     {
-        List<TreeElement> siblings = new ArrayList<>();
+        List<TreeElement> youngerSiblings = new ArrayList<>();
+        List<TreeElement> olderSiblings = new ArrayList<>();
 
         if(treeElement != null && Util.hasItem(treeElement.position))
         {
@@ -258,20 +270,23 @@ public class Tree extends ArrayList<TreeElement>
                         condition = condition && x.element != null && treeElement.element != null && x.element.tagName().equalsIgnoreCase(treeElement.element.tagName());
                     }
 
-                    if (elder)
+                    boolean toGetOlderSiblings = condition && x.position.get(x.position.size()-1) < treeElement.position.get(treeElement.position.size()-1);
+                    boolean toGetYoungerSiblings = condition && x.position.get(x.position.size()-1) > treeElement.position.get(treeElement.position.size()-1);
+
+                    if(toGetOlderSiblings)
                     {
-                        condition = condition && x.position.get(x.position.size()-1) < treeElement.position.get(treeElement.position.size()-1);
+                        olderSiblings.add(x);
                     }
 
-                    if(condition)
+                    if(toGetYoungerSiblings)
                     {
-                        siblings.add(x);
+                        youngerSiblings.add(x);
                     }
                 });
             }
         }
 
-        return siblings;
+        return new MapEntry<>(youngerSiblings, olderSiblings);
     }
 
     protected List<TreeElement> getElementsBetweenSubTreeRootAndLeafInclusive(TreeElement subTreeRoot, TreeElement leaf)

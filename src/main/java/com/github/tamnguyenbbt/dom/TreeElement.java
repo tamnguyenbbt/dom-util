@@ -98,50 +98,56 @@ final class TreeElement
         }
     }
 
-    protected List<String> attachIdAndNameToXpaths(List<String> xpaths)
+    protected List<String> attachAttributesByNamePatternsToXpaths(List<String> xpaths, List<String> attributeNamePatterns, GetAttributeMethod getAttributeMethod)
     {
         List<String> result = new ArrayList<>();
 
-        if(element != null && Util.hasItem(xpaths))
+        if(element != null && Util.hasItem(xpaths) && Util.hasItem(attributeNamePatterns))
         {
-            xpaths.forEach(x -> {
-                String newXpath = attachIdToXpath(x);
-                newXpath = attachNameToXpath(newXpath);
-                result.add(newXpath);
-            });
+            for (String xpath : xpaths)
+            {
+                if(xpath != null)
+                {
+                    String newXpath = attachAttributesByNamePatternsToXpath(xpath, attributeNamePatterns, getAttributeMethod);
+                    result.add(newXpath);
+                }
+            }
         }
 
         return result;
     }
 
-    protected String attachIdToXpath(String xpath)
+    protected String attachAttributesByNamePatternsToXpath(String xpath, List<String> attributeNamePatterns, GetAttributeMethod getAttributeMethod)
     {
-        String xpathWithAttributes = xpath;
-
-        if(xpath != null && element != null)
+        if(element != null && xpath != null && Util.hasItem(attributeNamePatterns))
         {
-            Attribute idAttribute = getAttributeByName("id");
+            String newXpath= xpath;
 
-            if(idAttribute != null)
+            for (String pattern : attributeNamePatterns)
             {
-                xpathWithAttributes = String.format("%s[@id='%s']", xpathWithAttributes, idAttribute.getValue());
+                newXpath = attachAttributesByNamePatternToXpath(newXpath, pattern, getAttributeMethod);
             }
+
+            return  newXpath;
         }
 
-        return xpathWithAttributes;
+        return null;
     }
 
-    protected String attachNameToXpath(String xpath)
+    protected String attachAttributesByNamePatternToXpath(String xpath, String attributeNamePattern, GetAttributeMethod getAttributeMethod)
     {
         String xpathWithAttributes = xpath;
 
         if(xpath != null && element != null)
         {
-            Attribute nameAttribute = getAttributeByName("name");
+            List<Attribute> attributes = getAttributes(attributeNamePattern, getAttributeMethod);
 
-            if(nameAttribute != null)
+            if(Util.hasItem(attributes))
             {
-                xpathWithAttributes = String.format("%s[@name='%s']", xpathWithAttributes, nameAttribute.getValue());
+                for (Attribute item : attributes)
+                {
+                    xpathWithAttributes = String.format("%s[@%s='%s']", xpathWithAttributes, item.getKey(), item.getValue());
+                }
             }
         }
 
@@ -155,75 +161,89 @@ final class TreeElement
             return null;
         }
 
-        Attribute anchorForAttribute = anchor.getAttributeByNameContainingPattern("for");
+        List<Attribute> anchorForLikeAttributes = anchor.getAttributes("for", GetAttributeMethod.ByNameOrByNameContainingPattern);
 
-        if(anchorForAttribute != null)
+        if(Util.hasItem(anchorForLikeAttributes))
         {
-            String anchorForAttributeValue = anchorForAttribute.getValue();
-            Attribute elementIdAttribute = getAttributeByName("id");
-
-            if (elementIdAttribute != null &&
-                    elementIdAttribute.getValue() != null &&
-                    elementIdAttribute.getValue().trim().equalsIgnoreCase(anchorForAttributeValue))
+            for (Attribute item : anchorForLikeAttributes)
             {
-                return elementIdAttribute;
-            }
+                Attribute linkedIdAttribute = getAttributeLinkedToAnchorAttribute(item, "id");
 
-            Attribute elementNameAttribute = getAttributeByName("name");
+                if(linkedIdAttribute != null)
+                {
+                    return linkedIdAttribute;
+                }
 
-            if(elementNameAttribute != null &&
-                    elementNameAttribute.getValue() != null &&
-                    elementNameAttribute.getValue().trim().equals(anchorForAttributeValue))
-            {
-                return elementNameAttribute;
+                Attribute linkedNameAttribute = getAttributeLinkedToAnchorAttribute(item, "name");
+
+                if(linkedNameAttribute != null)
+                {
+                    return linkedNameAttribute;
+                }
             }
         }
 
         return null;
     }
 
-    protected Attribute getAttributeByNameContainingPattern(String pattern)
+    private Attribute getAttributeLinkedToAnchorAttribute(Attribute anchorAttribute, String attributeNamePattern)
     {
-        if(element == null)
+        if(anchorAttribute != null)
         {
-            return null;
-        }
+            List<Attribute> attributes = getAttributes(attributeNamePattern, GetAttributeMethod.ByNameOrByNameContainingPattern);
 
-        List<Attribute> anchorAttributes = element.attributes().asList();
-
-        for(Attribute item : anchorAttributes)
-        {
-            String attributeKey = item.getKey();
-
-            if(attributeKey.toLowerCase().contains(pattern.toLowerCase()))
+            if(Util.hasItem(attributes))
             {
-                return item;
+                for (Attribute item : attributes)
+                {
+                    if(item.getValue() != null && item.getValue().trim().equalsIgnoreCase(anchorAttribute.getValue()))
+                    {
+                        return item;
+                    }
+                }
             }
         }
 
         return null;
     }
 
-    protected Attribute getAttributeByName(String name)
+    private List<Attribute> getAttributes(String pattern, GetAttributeMethod getAttributeMethod)
     {
-        if(element == null)
+        List<Attribute> result = new ArrayList<>();
+
+        if(element != null)
         {
-            return null;
-        }
+            List<Attribute> attributes = element.attributes().asList();
 
-        List<Attribute> anchorAttributes = element.attributes().asList();
-
-        for(Attribute item : anchorAttributes)
-        {
-            String attributeKey = item.getKey();
-
-            if(attributeKey.equalsIgnoreCase(name))
+            if(Util.hasItem(attributes))
             {
-                return item;
+                attributes.forEach(x -> {
+                    switch(getAttributeMethod)
+                    {
+                        case ByName:
+                            if(x.getKey().equalsIgnoreCase(pattern))
+                            {
+                                result.add(x);
+                            }
+                            break;
+                        case ByNameContainingPattern:
+                            if(x.getKey().toLowerCase().contains(pattern.toLowerCase()))
+                            {
+                                result.add(x);
+                            }
+                            break;
+                        default:
+                            if(x.getKey().equalsIgnoreCase(pattern) || x.getKey().toLowerCase().contains(pattern.toLowerCase()))
+                            {
+                                result.add(x);
+                            }
+                            break;
+                    }
+                });
             }
         }
 
-        return null;
+        return result;
     }
 
     protected List<TreeElement> getAnchorsByShortestDistanceDepth(int shortestDistanceDepth)

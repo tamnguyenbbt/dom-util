@@ -51,12 +51,12 @@ final class ElementRecord
 
         if(Util.hasItem(config.xpathBuildOptions) && config.xpathBuildOptions.contains(XpathBuildOption.AttachId))
         {
-            xpath = treeElement.attachIdToXpath(xpath);
+            xpath = treeElement.attachAttributesByNamePatternToXpath(xpath, "id", GetAttributeMethod.ByNameOrByNameContainingPattern);
         }
 
         if(Util.hasItem(config.xpathBuildOptions) && config.xpathBuildOptions.contains(XpathBuildOption.AttachName))
         {
-            xpath = treeElement.attachNameToXpath(xpath);
+            xpath = treeElement.attachAttributesByNamePatternToXpath(xpath, "name", GetAttributeMethod.ByNameOrByNameContainingPattern);
         }
 
         return xpath;
