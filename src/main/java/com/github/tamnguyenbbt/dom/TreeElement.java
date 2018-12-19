@@ -14,6 +14,7 @@ final class TreeElement
     protected Map<TreeElement,Integer> distancesToAnchors;
     protected Map<TreeElement,Position> rootPositionsForAnchors;
     protected Map<TreeElement,Attribute> linkedAnchors;
+    protected List<TreeElement> anchorElementsFormingXpaths;
     protected List<String> uniqueXpaths;
     protected List<String> uniqueXpathsWithAttributes;
     protected List<String> leastRefactoredXpaths;
@@ -27,6 +28,7 @@ final class TreeElement
         distancesToAnchors = new HashMap<>();
         linkedAnchors = new HashMap<>();
         rootPositionsForAnchors = new HashMap<>();
+        anchorElementsFormingXpaths = new ArrayList<>();
         uniqueXpaths = new ArrayList<>();
         uniqueXpathsWithAttributes = new ArrayList<>();
         leastRefactoredXpaths = new ArrayList<>();
@@ -288,12 +290,19 @@ final class TreeElement
     protected List<Integer> getNonDuplicatedShortestDistancesToAnchors(int shortestDistanceDepth)
     {
         List<Integer> distances = getDistancesToAnchors();
-        Set<Integer> set = new HashSet<>();
-        set.addAll(distances);
-        distances.clear();
-        distances.addAll(set);
-        Collections.sort(distances);
-        return new ArrayList<>(distances.subList(0, shortestDistanceDepth - 1));
+
+        if(Util.hasItem(distances))
+        {
+            int size = distances.size();
+            Set<Integer> set = new HashSet<>();
+            set.addAll(distances);
+            distances.clear();
+            distances.addAll(set);
+            Collections.sort(distances);
+            return new ArrayList<>(distances.subList(0, shortestDistanceDepth > size ? size : shortestDistanceDepth));
+        }
+
+        return distances;
     }
 
     protected List<Integer> getDistancesToAnchors()
@@ -415,5 +424,10 @@ final class TreeElement
         }
 
         return false;
+    }
+
+    protected boolean isValid()
+    {
+        return element != null && Util.hasItem(position) && Util.hasItem(uniqueXpaths) && (uniqueXpaths.size() > 0);
     }
 }
