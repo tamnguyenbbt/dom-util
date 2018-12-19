@@ -15,6 +15,7 @@ public class Tree extends ArrayList<TreeElement>
     protected TreeElement anchor;
     protected boolean getAnchorForAnchors = false;
     protected boolean includeTagIndex = true;
+    protected int shortestDistanceDepth = 1;
 
     protected Tree()
     {
@@ -102,6 +103,7 @@ public class Tree extends ArrayList<TreeElement>
             {
                 treeElement.uniqueXpaths.add(String.format("//%s[text()='%s']", element.tagName(), element.ownText()));
                 treeElement.leastRefactoredXpaths.add(String.format("//%s[contains(text(),'%s')]", element.tagName(), Util.removeLineSeparators(element.ownText()).trim()));
+                treeElement.anchorElementsFormingXpaths.add(treeElement);
             }
             else
             {
@@ -111,24 +113,24 @@ public class Tree extends ArrayList<TreeElement>
                     TreeElement linkedAnchor = linkedAnchorAndElementAttribute.getKey();
                     Position rootPositionForLinkedAnchor = treeElement.getRootPositionForLinkedAnchor(linkedAnchor);
                     TreeElement rootElement = getTreeElementByPosition( rootPositionForLinkedAnchor);
-                    rootElement.element.attr(Tree.uniqueInsertedAttribute, UUID.randomUUID().toString());
                     MapEntry<String,String> xpaths = buildXpath(rootElement, linkedAnchor, treeElement, includeTagIndex);
                     treeElement.uniqueXpaths.add(xpaths.getKey());
                     treeElement.leastRefactoredXpaths.add(xpaths.getValue());
+                    treeElement.anchorElementsFormingXpaths.add(linkedAnchor);
                 }
                 else
                 {
-                    List<TreeElement> anchors = treeElement.getAnchorsByShortestDistanceDepth(2);
+                    List<TreeElement> anchors = treeElement.getAnchorsByShortestDistanceDepth(shortestDistanceDepth);
 
                     if(Util.hasItem(anchors))
                     {
                         anchors.forEach(x -> {
                             Position rootPosition = treeElement.getRootElementPosition(x);
                             TreeElement rootElement = getTreeElementByPosition(rootPosition);
-                            rootElement.element.attr(Tree.uniqueInsertedAttribute, UUID.randomUUID().toString());
                             MapEntry<String,String> xpaths = buildXpath(rootElement, x, treeElement, includeTagIndex);
                             treeElement.uniqueXpaths.add(xpaths.getKey());
                             treeElement.leastRefactoredXpaths.add(xpaths.getValue());
+                            treeElement.anchorElementsFormingXpaths.add(x);
                         });
                     }
                 }
@@ -247,6 +249,7 @@ public class Tree extends ArrayList<TreeElement>
         return xpathBuilder.toString();
     }
 
+    // not a good return pattern but for better performance (reducing 1 loop) and private then OK
     private MapEntry<List<TreeElement>, List<TreeElement>> getSiblings(TreeElement treeElement, boolean sameTagName)
     {
         List<TreeElement> youngerSiblings = new ArrayList<>();
