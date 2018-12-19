@@ -335,7 +335,9 @@ class DomInternal extends DomCore
 
         if (Util.hasItem(elementsByLink))
         {
-            Elements anchorElements = getElementsByTagNameMatchingOwnText(document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
+            Elements anchorElements = anchorElementInfo.tagName == null 
+            ? getElementsMatchingOwnText(document, anchorElementInfo.ownText, anchorElementInfo.condition)
+            : getElementsByTagNameMatchingOwnText(document, anchorElementInfo.tagName, anchorElementInfo.ownText, anchorElementInfo.condition);
             Elements filteredAnchors = getElements(elementsByLink, anchorElements, SearchMethod.ByDistance, bestEffort);
             return getXpath(filteredAnchors, elementsByLink, SearchMethod.ByDistance, bestEffort);
         }
