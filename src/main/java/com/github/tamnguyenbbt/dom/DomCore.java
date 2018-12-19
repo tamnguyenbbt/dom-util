@@ -37,11 +37,16 @@ class DomCore
         config = new DomUtilConfig();
     }
 
-    public Tree getDocumentTree(Document document)
+    public String generateMethod(Document document)
     {
-        if(document != null)
+        CodeGenerator codeGenerator = new CodeGenerator(document);
+
+        for (TreeElement element : codeGenerator.getTree())
         {
-            return new Tree(document);
+            if(element.element.tagName().equals("input"))
+            {
+                return codeGenerator.generateSetMethodForInputTag(element);
+            }
         }
 
         return null;
