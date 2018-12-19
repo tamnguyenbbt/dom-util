@@ -82,7 +82,7 @@ public class DomUtilTest
     public void getXPaths() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -99,7 +99,7 @@ public class DomUtilTest
     public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -119,7 +119,7 @@ public class DomUtilTest
     }
 
     @Test
-    public void getElements() throws IOException, AmbiguousAnchorElementsException
+    public void getClosestElementsFromAnchorElement() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
         String expectedJSNameValue = "YPqjbf";
@@ -139,7 +139,7 @@ public class DomUtilTest
     public void getXPath() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -187,7 +187,7 @@ public class DomUtilTest
     }
 
     @Test
-    public void sampleSeleniumTest_using_getWebElement_NoAnchorElementFoundException()
+    public void sampleSeleniumTest_using_findElement_NoAnchorElementFoundException()
             throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
     {
         //Arrange
@@ -212,7 +212,7 @@ public class DomUtilTest
     }
 
     @Test
-    public void sampleSeleniumTest_using_getWebElement_no_element_found()
+    public void sampleSeleniumTest_using_findElement_no_element_found()
             throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, InterruptedException
     {
         //Arrange
@@ -230,24 +230,13 @@ public class DomUtilTest
     }
 
     @Test
-    public void getDocumentTree() throws IOException
+    public void simpleTestMethodCodeGen() throws IOException
     {
         //Arrange
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
         //Act
-        Tree documentTree = domUtil.getDocumentTree(document);
-    }
-
-    @Test
-    public void getXpaths() throws IOException, AmbiguousAnchorElementsException
-    {
-        //Arrange
-        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = domUtil.htmlFileToDocument(resourcePath);
-
-        //Act
-        List<String> xpaths = domUtil.getXpaths(document, "First name", "input");
+        String method = domUtil.generateMethod(document);
     }
 }
