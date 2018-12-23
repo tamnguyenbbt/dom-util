@@ -1,15 +1,12 @@
 package com.github.tamnguyenbbt.dom;
 
 import com.github.tamnguyenbbt.exception.*;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +20,7 @@ import java.util.List;
  * @version: 1.0
  * @since: 2018-09-30
  */
-public class DomUtil extends DomInternal
+public class DomUtil extends DomCore
 {
     public DomUtil(DomUtilConfig config)
     {
@@ -32,24 +29,6 @@ public class DomUtil extends DomInternal
 
     public DomUtil()
     {
-    }
-
-    public Document htmlFileToDocument(String path) throws IOException
-    {
-        return htmlFileToDocument(path, "UTF-8");
-    }
-
-    public Document htmlFileToDocument(String path, String charsetName) throws IOException
-    {
-        File file = new File(path);
-        Document document = null;
-
-        if(file.exists() && file.isFile())
-        {
-            document = Jsoup.parse(file, charsetName);
-        }
-
-        return document;
     }
 
     /**region get web element from document by two anchors
@@ -93,7 +72,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getWebElementWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                               anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                               anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e) { return null; }
     }
@@ -102,7 +81,7 @@ public class DomUtil extends DomInternal
                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElementWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+        return getWebElementWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public WebElement getWebElementWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
@@ -144,7 +123,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e) { return null; }
     }
@@ -153,7 +132,7 @@ public class DomUtil extends DomInternal
                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
             throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+        return getWebElementWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public WebElement getWebElementWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
@@ -162,7 +141,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElementWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, true);
+            return getWebElementWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -174,7 +153,7 @@ public class DomUtil extends DomInternal
                                                   ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getWebElementWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
+        return getWebElementWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     /**region get web element from document by anchor
@@ -196,7 +175,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElement(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getWebElement(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -207,7 +186,7 @@ public class DomUtil extends DomInternal
     public WebElement getWebElement(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElement(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getWebElement(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public WebElement getWebElementExactMatchBestEffort(WebDriver driver, String anchorElementOwnText, String searchCssQuery)
@@ -227,7 +206,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -238,7 +217,7 @@ public class DomUtil extends DomInternal
     public WebElement getWebElementExactMatch(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getWebElementExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public WebElement getWebElementBestEffort(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
@@ -246,7 +225,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElement(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getWebElement(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -257,7 +236,7 @@ public class DomUtil extends DomInternal
     public WebElement getWebElement(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getWebElement(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getWebElement(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     /**region get web elements from document by two anchors
@@ -297,7 +276,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getWebElementsWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                       anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                                       anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -310,7 +289,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
         return getWebElementsWithTwoAnchors(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                            anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                                            anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<WebElement> getWebElementsWithTwoAnchorsExactMatchBestEffort(WebDriver driver, String parentAnchorElementOwnText,
@@ -348,7 +327,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                    anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -361,7 +340,7 @@ public class DomUtil extends DomInternal
             throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
         return getWebElementsWithTwoAnchorsExactMatch(driver, parentAnchorElementTagName, parentAnchorElementOwnText,
-                anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<WebElement> getWebElementsWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
@@ -370,7 +349,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElementsWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, true);
+            return getWebElementsWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -382,7 +361,7 @@ public class DomUtil extends DomInternal
                                                          ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getWebElementsWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
+        return getWebElementsWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     /**region get web elements from document by anchor
@@ -404,7 +383,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElements(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getWebElements(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -415,7 +394,7 @@ public class DomUtil extends DomInternal
     public List<WebElement> getWebElements(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElements(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getWebElements(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<WebElement> getWebElementsExactMatchBestEffort(WebDriver driver, String anchorElementOwnText, String searchCssQuery)
@@ -435,7 +414,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElementsExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getWebElementsExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -446,7 +425,7 @@ public class DomUtil extends DomInternal
     public List<WebElement> getWebElementsExactMatch(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
     {
-        return getWebElementsExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getWebElementsExactMatch(driver, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<WebElement> getWebElementsBestEffort(WebDriver driver, ElementInfo anchorElementInfo, String searchCssQuery)
@@ -466,7 +445,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getWebElements(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getWebElements(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -477,7 +456,7 @@ public class DomUtil extends DomInternal
     public List<WebElement> getWebElements(WebDriver driver, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getWebElements(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getWebElements(driver, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     /**region get xpath from document by two anchors
@@ -522,7 +501,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getXpathWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                          anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                          anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -536,7 +515,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpathWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
@@ -578,7 +557,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                    anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                                    anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -593,17 +572,32 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         return getXpathWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                                                anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
+    }
+
+    public String getXpathWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
+                                                   ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Document document = getActiveDocument(driver);
+        return getXpathWithTwoAnchorsBestEffort(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+    }
+
+    public String getXpathWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
+                                         ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Document document = getActiveDocument(driver);
+        return getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
     }
 
     public String getXpathWithTwoAnchorsBestEffort(Document document, ElementInfo parentAnchorElementInfo,
                                                    ElementInfo anchorElementInfo, String searchCssQuery)
-        throws AmbiguousFoundXpathsException,
-        AnchorIndexIfMultipleFoundOutOfBoundException
+        throws AmbiguousFoundXpathsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
         try
         {
-            return getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, true);
+            return getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -616,28 +610,154 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException,
         AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
+        return getXpathWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
-    public String getXpathWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                                   ElementInfo anchorElementInfo, String searchCssQuery)
-        throws AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    /**region get xpaths from document by two anchors
+     */
+    public List<String> getXpathsWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText,
+                                                   String anchorElementOwnText, String searchCssQuery)
+    {
+        return getXpathsWithTwoAnchorsBestEffort(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchors(Document document, String parentAnchorElementOwnText,
+                                         String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException
+    {
+        return getXpathsWithTwoAnchors(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsBestEffort(Document document, String parentAnchorElementOwnText,
+                                                   String anchorElementTagName,
+                                                   String anchorElementOwnText, String searchCssQuery)
+    {
+        return getXpathsWithTwoAnchorsBestEffort(document, null, parentAnchorElementOwnText, anchorElementTagName,
+                                                anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchors(Document document, String parentAnchorElementOwnText,
+                                         String anchorElementTagName,
+                                         String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException
+    {
+        return getXpathsWithTwoAnchors(document, null, parentAnchorElementOwnText, anchorElementTagName,
+                                      anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsBestEffort(Document document, String parentAnchorElementTagName,
+                                                   String parentAnchorElementOwnText, String anchorElementTagName,
+                                                   String anchorElementOwnText, String searchCssQuery)
     {
         try
         {
-            return getXpathWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, true);
+            return getXpathsWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                          anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
-            return null;
+            return new ArrayList<>();
         }
     }
 
-    public String getXpathWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
-                                         ElementInfo anchorElementInfo, String searchCssQuery)
-        throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    public List<String> getXpathsWithTwoAnchors(Document document, String parentAnchorElementTagName,
+                                         String parentAnchorElementOwnText, String anchorElementTagName,
+                                         String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException
     {
-        return getXpathWithTwoAnchors(driver, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
+        return getXpathsWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
+                                                             String anchorElementOwnText, String searchCssQuery)
+    {
+        return getXpathsWithTwoAnchorsExactMatchBestEffort(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
+                                                   String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException
+    {
+        return getXpathsWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
+                                                             String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        return getXpathsWithTwoAnchorsExactMatchBestEffort(document, null, parentAnchorElementOwnText, anchorElementTagName,
+                                                          anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
+                                                   String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+        throws AmbiguousAnchorElementsException
+    {
+        return getXpathsWithTwoAnchorsExactMatch(document, null, parentAnchorElementOwnText, anchorElementTagName,
+                                                anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementTagName,
+                                                             String parentAnchorElementOwnText,
+                                                             String anchorElementTagName, String anchorElementOwnText,
+                                                             String searchCssQuery)
+    {
+        try
+        {
+            return getXpathsWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                                    anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<String> getXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName,
+                                                   String parentAnchorElementOwnText,
+                                                   String anchorElementTagName, String anchorElementOwnText,
+                                                   String searchCssQuery)
+        throws AmbiguousAnchorElementsException
+    {
+        return getXpathsWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                                                anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsBestEffort(WebDriver driver, ElementInfo parentAnchorElementInfo,
+                                                   ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Document document = getActiveDocument(driver);
+        return getXpathsWithTwoAnchorsBestEffort(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchors(WebDriver driver, ElementInfo parentAnchorElementInfo,
+                                         ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Document document = getActiveDocument(driver);
+        return getXpathsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+    }
+
+    public List<String> getXpathsWithTwoAnchorsBestEffort(Document document, ElementInfo parentAnchorElementInfo,
+                                                   ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        try
+        {
+            return getXpathsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.BestEffort);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<String> getXpathsWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo,
+                                         ElementInfo anchorElementInfo, String searchCssQuery)
+        throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        return getXpathsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     /**region get xpath from document by anchor
@@ -659,7 +779,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getXpath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -670,7 +790,7 @@ public class DomUtil extends DomInternal
     public String getXpath(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
-        return getXpath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getXpath(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpathExactMatchBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
@@ -690,7 +810,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -701,7 +821,7 @@ public class DomUtil extends DomInternal
     public String getXpathExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
             throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
-        return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getXpathExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpathBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
@@ -709,7 +829,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return  getXpath(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return  getXpath(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -720,7 +840,7 @@ public class DomUtil extends DomInternal
     public String getXpath(Document document, Elements anchorElements, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
-        return  getXpath(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return  getXpath(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpathBestEffort(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
@@ -728,7 +848,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpath(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getXpath(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -740,7 +860,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException,
         AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getXpath(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getXpath(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpathBestEffort(Elements anchorElements, Elements searchElements)
@@ -748,7 +868,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpath(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, true);
+            return getXpath(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -759,7 +879,7 @@ public class DomUtil extends DomInternal
     public String getXpath(Elements anchorElements, Elements searchElements)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
-        return getXpath(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, false);
+        return getXpath(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public String getXpath(Element anchorElement, Elements searchElements)
@@ -785,7 +905,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getXpaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -796,7 +916,7 @@ public class DomUtil extends DomInternal
     public List<String> getXpaths(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException
     {
-        return getXpaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getXpaths(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpathsExactMatchBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
@@ -814,7 +934,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpathsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getXpathsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -825,7 +945,7 @@ public class DomUtil extends DomInternal
     public List<String> getXpathsExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException
     {
-        return getXpathsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getXpathsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpathsBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
@@ -833,7 +953,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, true);
+            return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -844,7 +964,7 @@ public class DomUtil extends DomInternal
     public List<String> getXpaths(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, false);
+        return getXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpathsBestEffort(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
@@ -852,7 +972,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getXpaths(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getXpaths(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -863,14 +983,14 @@ public class DomUtil extends DomInternal
     public List<String> getXpaths(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getXpaths(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getXpaths(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpathsBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
     {
         try
         {
-            return getXpaths(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getXpaths(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -881,14 +1001,14 @@ public class DomUtil extends DomInternal
     public List<String> getXpaths(Document document, Elements anchorElements, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException
     {
-        return getXpaths(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getXpaths(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpathsBestEffort(Elements anchorElements, Elements searchElements)
     {
         try
         {
-            return getXpaths(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, true);
+            return getXpaths(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -899,7 +1019,7 @@ public class DomUtil extends DomInternal
     public List<String> getXpaths(Elements anchorElements, Elements searchElements)
         throws AmbiguousAnchorElementsException
     {
-        return getXpaths(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, false);
+        return getXpaths(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public List<String> getXpaths(Element anchorElement, Elements searchElements)
@@ -984,7 +1104,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getElementWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                            anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                            anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -997,7 +1117,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
         return getElementWithTwoAnchors(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                        anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                                        anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementWithTwoAnchorsExactMatchBestEffort(Document document, String parentAnchorElementOwnText,
@@ -1041,7 +1161,7 @@ public class DomUtil extends DomInternal
         try
         {
             return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, true);
+                                                      anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1056,7 +1176,7 @@ public class DomUtil extends DomInternal
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
         return getElementWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
-                                                  anchorElementTagName, anchorElementOwnText, searchCssQuery, false);
+                                                  anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementWithTwoAnchorsBestEffort(Document document, ElementInfo parentAnchorElementInfo,
@@ -1065,7 +1185,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, true);
+            return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1076,9 +1196,8 @@ public class DomUtil extends DomInternal
     public Element getElementWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo, ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, false);
+        return getElementWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.ErrorOnAmbiguousAnchors);
     }
-
 
     /**region get element from document by anchor
      */
@@ -1099,7 +1218,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1110,7 +1229,7 @@ public class DomUtil extends DomInternal
     public Element getElement(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getElement(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementExactMatchBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
@@ -1130,7 +1249,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElementExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
+            return getElementExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1141,7 +1260,7 @@ public class DomUtil extends DomInternal
     public Element getElementExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        return getElementExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getElementExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
@@ -1149,7 +1268,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, true);
+            return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1160,7 +1279,7 @@ public class DomUtil extends DomInternal
     public Element getElement(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance,false);
+        return getElement(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
@@ -1168,7 +1287,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElement(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getElement(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -1179,7 +1298,7 @@ public class DomUtil extends DomInternal
     public Element getElement(Document document, Elements anchorElements, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        return getElement(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getElement(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementBestEffort(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
@@ -1187,7 +1306,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElement(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getElement(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -1198,7 +1317,7 @@ public class DomUtil extends DomInternal
     public Element getElement(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getElement(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getElement(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElementBestEffort(Elements anchorElements, Elements searchElements)
@@ -1206,7 +1325,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElement(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, true);
+            return getElement(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch(AmbiguousAnchorElementsException e)
         {
@@ -1217,7 +1336,7 @@ public class DomUtil extends DomInternal
     public Element getElement(Elements anchorElements, Elements searchElements)
         throws AmbiguousAnchorElementsException, AmbiguousFoundElementsException
     {
-        return getElement(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, false);
+        return getElement(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Element getElement(Element anchorElement, Elements searchElements)
@@ -1226,12 +1345,24 @@ public class DomUtil extends DomInternal
         return getElement(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
     }
 
-    /**region get elements from document by anchor
+    /**
+     * region get elements from document by anchor
      */
-
     public Elements getElementsBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
     {
         return getElementsBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Elements getElementsBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        try
+        {
+            return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
+        }
+        catch (AmbiguousAnchorElementsException e)
+        {
+            return new Elements();
+        }
     }
 
     public Elements getElements(Document document, String anchorElementOwnText, String searchCssQuery)
@@ -1240,27 +1371,27 @@ public class DomUtil extends DomInternal
         return getElements(document, null, anchorElementOwnText, searchCssQuery);
     }
 
-    public Elements getElementsBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
-    {
-        try
-        {
-            return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
-        }
-        catch (AmbiguousAnchorElementsException e)
-        {
-            return new Elements();
-        }
-    }
-
     public Elements getElements(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException
     {
-        return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getElements(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElementsExactMatchBestEffort(Document document, String anchorElementOwnText, String searchCssQuery)
     {
         return getElementsExactMatchBestEffort(document, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public Elements getElementsExactMatchBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        try
+        {
+            return getElementsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
+        }
+        catch (AmbiguousAnchorElementsException e)
+        {
+            return new Elements();
+        }
     }
 
     public Elements getElementsExactMatch(Document document, String anchorElementOwnText, String searchCssQuery)
@@ -1269,22 +1400,10 @@ public class DomUtil extends DomInternal
         return getElementsExactMatch(document, null, anchorElementOwnText, searchCssQuery);
     }
 
-    public Elements getElementsExactMatchBestEffort(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
-    {
-        try
-        {
-            return getElementsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, true);
-        }
-        catch (AmbiguousAnchorElementsException e)
-        {
-            return new Elements();
-        }
-    }
-
     public Elements getElementsExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
         throws AmbiguousAnchorElementsException
     {
-        return getElementsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, false);
+        return getElementsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElementsBestEffort(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
@@ -1292,7 +1411,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance,true);
+            return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1303,7 +1422,7 @@ public class DomUtil extends DomInternal
     public Elements getElements(Document document, ElementInfo anchorElementInfo, String searchCssQuery)
         throws AnchorIndexIfMultipleFoundOutOfBoundException, AmbiguousAnchorElementsException
     {
-        return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance,false);
+        return getElements(document, anchorElementInfo, new ElementInfo(searchCssQuery), SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElementsBestEffort(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
@@ -1311,7 +1430,7 @@ public class DomUtil extends DomInternal
     {
         try
         {
-            return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1322,14 +1441,14 @@ public class DomUtil extends DomInternal
     public Elements getElements(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException, AnchorIndexIfMultipleFoundOutOfBoundException
     {
-        return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getElements(document, anchorElementInfo, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElementsBestEffort(Document document, Elements anchorElements, ElementInfo searchElementInfo)
     {
         try
         {
-            return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, true);
+            return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1340,14 +1459,14 @@ public class DomUtil extends DomInternal
     public Elements getElements(Document document, Elements anchorElements, ElementInfo searchElementInfo)
         throws AmbiguousAnchorElementsException
     {
-        return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, false);
+        return getElements(document, anchorElements, searchElementInfo, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElementsBestEffort(Elements anchorElements, Elements searchElements)
     {
         try
         {
-            return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, true);
+            return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.BestEffort);
         }
         catch (AmbiguousAnchorElementsException e)
         {
@@ -1358,7 +1477,7 @@ public class DomUtil extends DomInternal
     public Elements getElements(Elements anchorElements, Elements searchElements)
         throws AmbiguousAnchorElementsException
     {
-        return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, false);
+        return getElements(anchorElements, searchElements, SearchMethod.ByLinkAndDistance, SearchOption.ErrorOnAmbiguousAnchors);
     }
 
     public Elements getElements(Element anchorElement, Elements searchElements)
@@ -1366,7 +1485,8 @@ public class DomUtil extends DomInternal
         return getElements(anchorElement, searchElements, SearchMethod.ByLinkAndDistance);
     }
 
-    /**region get elements from document by tag and text
+    /**
+     * region get elements from document by tag and text
      */
     public Elements getElementsByTagNameContainingOwnTextIgnoreCase(Document document, String tagName, String pattern)
     {
@@ -1375,14 +1495,12 @@ public class DomUtil extends DomInternal
 
     public Elements getElementsByTagNameContainingOwnText(Document document, String tagName, String pattern)
     {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern,
-                                                   new Condition(false, true, false));
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, new Condition(false, true, false));
     }
 
     public Elements getElementsByTagNameMatchingOwnTextIgnoreCase(Document document, String tagName, String pattern)
     {
-        return getElementsByTagNameMatchingOwnText(document, tagName, pattern,
-                                                   new Condition(true, false, false));
+        return getElementsByTagNameMatchingOwnText(document, tagName, pattern, new Condition(true, false, false));
     }
 
     public Elements getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern)
@@ -1397,14 +1515,12 @@ public class DomUtil extends DomInternal
 
     public Elements getElementsContainingOwnText(Document document, String pattern)
     {
-        return getElementsMatchingOwnText(document, pattern,
-                                          new Condition(false, true, false));
+        return getElementsMatchingOwnText(document, pattern, new Condition(false, true, false));
     }
 
     public Elements getElementsMatchingOwnTextIgnoreCase(Document document, String pattern)
     {
-        return getElementsMatchingOwnText(document, pattern,
-                                          new Condition(true, false, false));
+        return getElementsMatchingOwnText(document, pattern, new Condition(true, false, false));
     }
 
     public Elements getElementsMatchingOwnText(Document document, String pattern)
