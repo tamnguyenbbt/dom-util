@@ -1,17 +1,15 @@
 package com.github.tamnguyenbbt.dom;
 
-class TestMethodInfo
+public class TestMethodInfo
 {
-    protected String returnType;
-    protected TestMethodType methodType;
-    protected boolean hasParam;
-    protected String seleniumFuncName;
+    public boolean hasReturn;
+    public boolean hasParam;
+    public String bodyWithInjectableXpathAndParam;
 
-    protected TestMethodInfo(TestMethodType methodType, boolean hasParam, String returnType, String seleniumFuncName)
+    protected TestMethodInfo(boolean hasReturn, boolean hasParam, String bodyWithInjectableXpathAndParam)
     {
-        this.methodType = methodType;
+        this.hasReturn = hasReturn;
         this.hasParam = hasParam;
-        this.returnType = returnType;
-        this.seleniumFuncName = seleniumFuncName;
+        this.bodyWithInjectableXpathAndParam = bodyWithInjectableXpathAndParam;
     }
 }
