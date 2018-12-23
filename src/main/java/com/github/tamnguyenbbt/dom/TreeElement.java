@@ -14,6 +14,9 @@ final class TreeElement
     protected Map<TreeElement,Integer> distancesToAnchors;
     protected Map<TreeElement,Position> rootPositionsForAnchors;
     protected Map<TreeElement,Attribute> linkedAnchors;
+    protected Tree activeContainingTree;
+    protected int activeDistanceToAnchorElement;
+    protected String activeXpath;
     protected List<TreeElement> anchorElementsFormingXpaths;
     protected List<String> uniqueXpaths;
     protected List<String> uniqueXpathsWithAttributes;
