@@ -28,6 +28,21 @@ final class ElementRecord
         }
     }
 
+    protected TreeElement getLeaf()
+    {
+        return containingTree.getLeaf();
+    }
+
+    protected TreeElement getRoot()
+    {
+        return containingTree.getRoot();
+    }
+
+    protected TreeElement getAnchor()
+    {
+        return containingTree.getAnchor();
+    }
+
     protected String buildXpath(DomUtilConfig config)
     {
         if(config == null)
@@ -35,9 +50,9 @@ final class ElementRecord
             config = new DomUtilConfig();
         }
 
-        TreeElement leaf = containingTree.getLeaf();
-        TreeElement root = containingTree.getRoot();
-        TreeElement anchor = containingTree.getAnchor();
+        TreeElement leaf = getLeaf();
+        TreeElement root = getRoot();
+        TreeElement anchor = getAnchor();
 
         if(leaf == null || root == null || anchor == null)
         {
