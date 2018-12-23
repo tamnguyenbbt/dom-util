@@ -3,17 +3,19 @@ package com.github.tamnguyenbbt.dom;
 import org.apache.commons.lang.WordUtils;
 import org.jsoup.nodes.Document;
 
-//simple for testing
 public class CodeGenerator
 {
     private Tree tree;
+    private AssociationRules associationRules;
 
-    public CodeGenerator(Document document)
+    public CodeGenerator(Document document, AssociationRules associationRules)
     {
         if(document != null)
         {
             tree = new Tree(document);
         }
+
+        this.associationRules = associationRules;
     }
 
     protected Tree getTree()
@@ -23,12 +25,13 @@ public class CodeGenerator
 
     public String generateSetMethodForInputTag(TreeElement element)
     {
-        return generateMethod(element, new TestMethodInfo(TestMethodType.set, true, null, "sendKeys"));
+        //return generateMethod(element, new TestMethodInfo(TestMethodType.set, true, null, "sendKeys"));
+        return null;
     }
 
-    public String generateMethod(TreeElement element, TestMethodInfo testMethodInfo)
+    public String generateMethod(TreeElement element, AssociationRule associationRule)
     {
-        if(element != null && element.isValid() && testMethodInfo != null)
+        if(element != null && element.isValid() && associationRule != null && associationRule.isValid())
         {
             String xpath = element.uniqueXpaths.get(0);
             TreeElement anchor = element.anchorElementsFormingXpaths.get(0);
@@ -37,21 +40,23 @@ public class CodeGenerator
             String methodName = WordUtils.capitalizeFully(anchorText).replace(" ", "");
             String body;
 
-            if(testMethodInfo.hasParam)
+            if(associationRule.testMethodInfo.hasParam)
             {
                 String paramName  = Character.toLowerCase(methodName.charAt(0)) + methodName.substring(1);
-                methodName = String.format("public %s %s%s(String %s)", testMethodInfo.returnType == null ? "void" : testMethodInfo.returnType, testMethodInfo.methodType, methodName, paramName);
-                body = String.format("driver.getElement(By.Xpath(%s)).%s(%s);", xpath, testMethodInfo.seleniumFuncName, paramName);
+                methodName = String.format("public %s %s%s(String %s)", associationRule.testMethodInfo.hasReturn ? "String" : "void", associationRule.methodType, methodName, paramName);
+                body = String.format(associationRule.testMethodInfo.bodyWithInjectableXpathAndParam, xpath, paramName);
             }
             else
             {
-                methodName = String.format("public %s %s%s()", testMethodInfo.returnType == null ? "void" : testMethodInfo.returnType, testMethodInfo.methodType, methodName);
-                body = String.format("driver.getElement(By.Xpath(%s)).%s();", xpath, testMethodInfo.seleniumFuncName);
+                methodName = String
+                    .format("public %s %s%s()", associationRule.testMethodInfo.hasReturn ? "String" : "void",
+                            associationRule.methodType, methodName);
+                body = String.format(associationRule.testMethodInfo.bodyWithInjectableXpathAndParam, xpath, "");
             }
 
             methodBuilder.append(methodName);
             methodBuilder.append("\n{\n");
-            methodBuilder.append(testMethodInfo.returnType == null ? String.format("\t%s", body) : String.format("\treturn %s", body));
+            //methodBuilder.append(testMethodInfo.returnType == null ? String.format("\t%s", body) : String.format("\treturn %s", body));
             methodBuilder.append("\n}");
             return methodBuilder.toString();
         }
