@@ -46,11 +46,22 @@ final class ElementRecords extends ArrayList<ElementRecord>
         logger.info(String.format("creating element records for ANCHOR: '%s' - time in ms: %s", displayedAnchor, stopWatch.getTime()));
     }
 
-    protected Elements getElements()
+    protected TreeElements getTreeElements(DomUtilConfig config)
     {
-        Elements elements = new Elements();
-        this.forEach(x -> elements.add(x.containingTree.getLeaf().element));
-        return elements;
+        TreeElements treeElements = new TreeElements();
+        this.forEach(x -> {
+            TreeElement treeElement = x.getLeaf();
+            treeElement.activeContainingTree = x.containingTree;
+            treeElement.activeDistanceToAnchorElement = x.distanceToAnchorElement;
+
+            if(config != null)
+            {
+                treeElement.activeXpath = x.buildXpath(config);
+            }
+
+            treeElements.add(treeElement);
+        });
+        return treeElements;
     }
 
     protected ElementRecords getClosestElementRecords()
