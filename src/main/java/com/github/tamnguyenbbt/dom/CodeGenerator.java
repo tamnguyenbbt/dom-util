@@ -2,6 +2,8 @@ package com.github.tamnguyenbbt.dom;
 
 import org.apache.commons.lang.WordUtils;
 import org.jsoup.nodes.Document;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CodeGenerator
 {
@@ -18,18 +20,26 @@ public class CodeGenerator
         this.associationRules = associationRules;
     }
 
-    protected Tree getTree()
+    public List<String> generateDocumentMethods()
     {
-        return tree;
+        List<String> methods = new ArrayList<>();
+
+        if(Util.hasItem(tree))
+        {
+            for (TreeElement item : tree)
+            {
+                if(item.element.tagName().equals("input"))
+                {
+                    methods.add(generateMethod(item, associationRules.get(0)));
+                    break;
+                }
+            }
+        }
+
+        return methods;
     }
 
-    public String generateSetMethodForInputTag(TreeElement element)
-    {
-        //return generateMethod(element, new TestMethodInfo(TestMethodType.set, true, null, "sendKeys"));
-        return null;
-    }
-
-    public String generateMethod(TreeElement element, AssociationRule associationRule)
+    private String generateMethod(TreeElement element, AssociationRule associationRule)
     {
         if(element != null && element.isValid() && associationRule != null && associationRule.isValid())
         {
@@ -38,25 +48,28 @@ public class CodeGenerator
             String anchorText = Util.removeLineSeparators(anchor.element.ownText()).trim();
             StringBuilder methodBuilder = new StringBuilder();
             String methodName = WordUtils.capitalizeFully(anchorText).replace(" ", "");
-            String body;
+            String paramName  = associationRule.testMethodInfo.hasParam ? Character.toLowerCase(methodName.charAt(0)) + methodName.substring(1) : "";
+            methodName = String.format("public %s %s%s(%s)",
+                    associationRule.testMethodInfo.returnType,
+                    associationRule.methodType,
+                    methodName,
+                    paramName == "" ? "" : String.format("String %s", paramName));
+            String body = String.format(associationRule.testMethodInfo.bodyWithInjectableXpathAndParam, xpath, paramName);
+            methodBuilder.append(methodName);
+            methodBuilder.append("\n{\n");
 
-            if(associationRule.testMethodInfo.hasParam)
+            if(paramName != "")
             {
-                String paramName  = Character.toLowerCase(methodName.charAt(0)) + methodName.substring(1);
-                methodName = String.format("public %s %s%s(String %s)", associationRule.testMethodInfo.hasReturn ? "String" : "void", associationRule.methodType, methodName, paramName);
-                body = String.format(associationRule.testMethodInfo.bodyWithInjectableXpathAndParam, xpath, paramName);
+                methodBuilder.append(String.format("\tif(%s != null)\n", paramName));
+                methodBuilder.append("\t{\n");
+                methodBuilder.append(String.format("\t\t%s\n", body));
+                methodBuilder.append("\t}");
             }
             else
             {
-                methodName = String
-                    .format("public %s %s%s()", associationRule.testMethodInfo.hasReturn ? "String" : "void",
-                            associationRule.methodType, methodName);
-                body = String.format(associationRule.testMethodInfo.bodyWithInjectableXpathAndParam, xpath, "");
+                methodBuilder.append(String.format("\t\t%s", body));
             }
 
-            methodBuilder.append(methodName);
-            methodBuilder.append("\n{\n");
-            //methodBuilder.append(testMethodInfo.returnType == null ? String.format("\t%s", body) : String.format("\treturn %s", body));
             methodBuilder.append("\n}");
             return methodBuilder.toString();
         }

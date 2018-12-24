@@ -2,13 +2,13 @@ package com.github.tamnguyenbbt.dom;
 
 public class TestMethodInfo
 {
-    public boolean hasReturn;
+    public String returnType;
     public boolean hasParam;
     public String bodyWithInjectableXpathAndParam;
 
-    protected TestMethodInfo(boolean hasReturn, boolean hasParam, String bodyWithInjectableXpathAndParam)
+    public TestMethodInfo(String returnType, boolean hasParam, String bodyWithInjectableXpathAndParam)
     {
-        this.hasReturn = hasReturn;
+        this.returnType = returnType;
         this.hasParam = hasParam;
         this.bodyWithInjectableXpathAndParam = bodyWithInjectableXpathAndParam;
     }

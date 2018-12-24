@@ -15,7 +15,6 @@ public class AssociationRule
 
     public boolean isValid()
     {
-       // return tag != null && methodType != null && testMethodInfo != null && testMethodInfo.body != null;
-        return false;
+        return tag != null && methodType != null && testMethodInfo != null && testMethodInfo.bodyWithInjectableXpathAndParam != null;
     }
 }

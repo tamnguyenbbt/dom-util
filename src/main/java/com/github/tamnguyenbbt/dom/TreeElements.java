@@ -11,13 +11,13 @@ final class TreeElements extends ArrayList<TreeElement>
         super();
     }
 
-    protected  TreeElements(Elements elements)
+    protected  TreeElements(TreeElements treeElements)
     {
         this();
 
-        if(Util.hasItem(elements))
+        if(Util.hasItem(treeElements))
         {
-            elements.forEach(x->this.add(new TreeElement(x)));
+            treeElements.forEach(x->this.add(x));
         }
     }
 
@@ -35,38 +35,66 @@ final class TreeElements extends ArrayList<TreeElement>
         return xpaths;
     }
 
+    protected List<TreeElements> groupTreeElementsByAnchor()
+    {
+        List<TreeElements> result = new ArrayList<>();
+        TreeElements copiedTreeElements = new TreeElements(this);
+
+        while(Util.hasItem(copiedTreeElements))
+        {
+            TreeElement currentTreeElement = copiedTreeElements.get(0);
+            TreeElement anchorOfTheCurrentTreeElement = currentTreeElement.activeContainingTree.getAnchor();
+            TreeElements treeElements = new TreeElements();
+            treeElements.add(currentTreeElement);
+            copiedTreeElements.remove(currentTreeElement);
+
+            if(Util.hasItem(copiedTreeElements))
+            {
+                copiedTreeElements.forEach(x->{
+                    TreeElement anchorOfTreeElement =  x.activeContainingTree.getAnchor();
+
+                    if(anchorOfTheCurrentTreeElement.equals(anchorOfTreeElement))
+                    {
+                        treeElements.add(x);
+                        copiedTreeElements.remove(x);
+                    }
+                });
+            }
+
+            if(Util.hasItem(treeElements))
+            {
+                result.add(treeElements);
+            }
+        }
+
+        return result;
+    }
+
     protected TreeElements getTreeElementsNotSharingTreeAnchor()
     {
         TreeElements result = new TreeElements();
         int treeElementCount = this.size();
 
-        if(treeElementCount == 1)
+        for(int i = 0; i < treeElementCount; i++)
         {
-            result.add(this.get(0));
-        }
-        else
-        {
-            for(int i = 0; i < treeElementCount; i++)
+            TreeElement currentTreeElement = this.get(i);
+            TreeElement iAnchor = currentTreeElement.activeContainingTree.getAnchor();
+            boolean notSharingAnchor = true;
+
+            for(int j = 0; j < treeElementCount; j++)
             {
-                TreeElement currentTreeElement = this.get(i);
-                TreeElement iAnchor = currentTreeElement.activeContainingTree.getAnchor();
-                boolean notSharingAnchor = true;
+                TreeElement jAnchor =  this.get(j).activeContainingTree.getAnchor();
 
-                for(int j = 0; j < treeElementCount; j++)
+                if(i != j && iAnchor.equals(jAnchor))
                 {
-                    TreeElement jAnchor =  this.get(j).activeContainingTree.getAnchor();
-
-                    if(i != j && iAnchor.equals(jAnchor))
-                    {
-                        notSharingAnchor = false;
-                        break;
-                    }
+                    notSharingAnchor = false;
+                    break;
                 }
+            }
 
-                if(notSharingAnchor)
-                {
-                    result.add(currentTreeElement);
-                }
+            if(notSharingAnchor)
+            {
+                result.add(currentTreeElement);
             }
         }
 

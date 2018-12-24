@@ -157,7 +157,8 @@ class DomCore
         return Util.hasNoItem(webElements) ? null : webElements.get(0);
     }
 
-    /** region get web element from driver by anchor
+    /**
+     * region get web element from driver by anchor
      */
     protected WebElement getWebElement(WebDriver driver, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, SearchOption searchOption)
         throws AmbiguousAnchorElementsException, AmbiguousFoundWebElementsException
@@ -206,7 +207,8 @@ class DomCore
         return Util.hasNoItem(webElements) ? null : webElements.get(0);
     }
 
-    /** region get web elements from driver by two anchors
+    /**
+     * region get web elements from driver by two anchors
      */
     protected List<WebElement> getWebElementsWithTwoAnchors(WebDriver driver, String parentAnchorElementTagName, String parentAnchorElementOwnText,
                                                             String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchOption searchOption)
@@ -256,7 +258,8 @@ class DomCore
         return findWebElements(driver, xpaths);
     }
 
-    /** region get web elements from driver by anchor
+    /**
+     * region get web elements from driver by anchor
      */
     protected List<WebElement> getWebElements(WebDriver driver, String anchorElementTagName, String anchorElementOwnText,
                                               String searchCssQuery, SearchMethod searchMethod, SearchOption searchOption)
@@ -306,7 +309,8 @@ class DomCore
         return findWebElements(driver, xpaths);
     }
 
-    /** region get xpath from document by two anchors
+    /**
+     * region get xpath from document by two anchors
      */
     protected String getXpathWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
                                             String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchOption searchOption)
@@ -363,7 +367,8 @@ class DomCore
         return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
-    /** region get xpath from document by anchor
+    /**
+     * region get xpath from document by anchor
      */
     protected String getXpath(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, SearchOption searchOption)
         throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
@@ -443,8 +448,88 @@ class DomCore
         return Util.hasNoItem(xpaths) ? null : xpaths.get(0);
     }
 
-    /** region get xpaths from document by two anchors
+    /**
+     * region get xpaths from document by two anchors
      */
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchors(Document document, String parentAnchorElementOwnText,
+                                                                 String anchorElementOwnText, String searchCssQuery)
+    {
+        return getAllPossibleXpathsWithTwoAnchors(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchors(Document document, String parentAnchorElementOwnText,
+                                                                 String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        return getAllPossibleXpathsWithTwoAnchors(document, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                                 String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        List<List<String>> xpaths = getAllPossibleXpathsWithTwoAnchorsExactMatch(document, parentAnchorElementTagName, parentAnchorElementOwnText,
+                anchorElementTagName, anchorElementOwnText, searchCssQuery);
+
+        if (Util.hasNoItem(xpaths))
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText, true);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+
+            try
+            {
+                xpaths = getAllPossibleXpathsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+            }
+            catch (AnchorIndexIfMultipleFoundOutOfBoundException e)
+            {
+                return new ArrayList<>();
+            }
+        }
+
+        return xpaths;
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
+                                                                          String anchorElementOwnText, String searchCssQuery)
+    {
+        return getAllPossibleXpathsWithTwoAnchorsExactMatch(document, parentAnchorElementOwnText, null, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementOwnText,
+                                                                           String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        return getAllPossibleXpathsWithTwoAnchorsExactMatch(document, null, parentAnchorElementOwnText, anchorElementTagName, anchorElementOwnText, searchCssQuery);
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchorsExactMatch(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
+                                                                           String anchorElementTagName, String anchorElementOwnText, String searchCssQuery)
+    {
+        try
+        {
+            ElementInfo parentAnchorElementInfo = new ElementInfo(parentAnchorElementTagName, parentAnchorElementOwnText);
+            ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText);
+            return getAllPossibleXpathsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery);
+        }
+        catch (AnchorIndexIfMultipleFoundOutOfBoundException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<List<String>> getAllPossibleXpathsWithTwoAnchors(Document document, ElementInfo parentAnchorElementInfo, ElementInfo anchorElementInfo, String searchCssQuery)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        List<List<String>> result = new ArrayList<>();
+        try
+        {
+            TreeElements treeElements = getTreeElementsWithTwoAnchors(document, parentAnchorElementInfo, anchorElementInfo, searchCssQuery, SearchOption.GetAllIgnoreAmbiguousAnchors);
+            result = treeElementsToXpathsGroupingByAnchor(treeElements);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+        }
+
+        return result;
+    }
+
     protected List<String> getXpathsWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
                                                    String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchOption searchOption)
         throws AmbiguousAnchorElementsException
@@ -493,8 +578,67 @@ class DomCore
         return treeElementsToXpaths(treeElements);
     }
 
-    /** region get xpaths from document by anchor
+    /**
+     * region get xpaths from document by anchor
      */
+    protected List<List<String>> getAllPossibleXpaths(Document document, String anchorElementTagName, String anchorElementOwnText,
+                                                      String searchCssQuery, SearchMethod searchMethod)
+    {
+        List<List<String>> xpaths = getAllPossibleXpathsExactMatch(document, anchorElementTagName, anchorElementOwnText, searchCssQuery, searchMethod);
+
+        if(Util.hasNoItem(xpaths))
+        {
+
+            try
+            {
+                ElementInfo anchorElementInfo = new ElementInfo(anchorElementTagName, anchorElementOwnText, true);
+                return getAllPossibleXpaths(document, anchorElementInfo, new ElementInfo(searchCssQuery), searchMethod);
+            }
+            catch (AnchorIndexIfMultipleFoundOutOfBoundException e)
+            {
+                return new ArrayList<>();
+            }
+        }
+
+        return xpaths;
+    }
+
+    protected List<List<String>> getAllPossibleXpathsExactMatch(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod)
+    {
+        try
+        {
+            return getAllPossibleXpaths(document, new ElementInfo(anchorElementTagName, anchorElementOwnText), new ElementInfo(searchCssQuery), searchMethod);
+        }
+        catch (AnchorIndexIfMultipleFoundOutOfBoundException e)
+        {
+            return new ArrayList<>();
+        }
+    }
+
+    protected List<List<String>> getAllPossibleXpaths(Document document, ElementInfo anchorElementInfo, ElementInfo searchElementInfo, SearchMethod searchMethod)
+            throws AnchorIndexIfMultipleFoundOutOfBoundException
+    {
+        Elements anchorElements = getElements(document, anchorElementInfo);
+        Elements activeAnchorElements = getActiveAnchorElements(anchorElements, anchorElementInfo);
+        Elements searchElements = getElements(document, searchElementInfo);
+        return getAllPossibleXpaths(activeAnchorElements, searchElements, searchMethod);
+    }
+
+    protected List<List<String>> getAllPossibleXpaths(Elements anchorElements, Elements searchElements, SearchMethod searchMethod)
+    {
+        List<List<String>> result = new ArrayList<>();
+        try
+        {
+            TreeElements treeElements = getTreeElements(anchorElements, searchElements, searchMethod, SearchOption.GetAllIgnoreAmbiguousAnchors);
+            result = treeElementsToXpathsGroupingByAnchor(treeElements);
+        }
+        catch(AmbiguousAnchorElementsException e)
+        {
+        }
+
+        return result;
+    }
+
     protected List<String> getXpaths(Document document, String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchMethod searchMethod, SearchOption searchOption)
         throws AmbiguousAnchorElementsException
     {
@@ -567,7 +711,8 @@ class DomCore
         return treeElementsToXpaths(treeElements);
     }
 
-    /** region get element from document by two anchors
+    /**
+     * region get element from document by two anchors
      */
     protected Element getElementWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
                                                String anchorElementTagName, String anchorElementOwnText, String searchCssQuery, SearchOption searchOption)
@@ -624,7 +769,8 @@ class DomCore
         return Util.hasNoItem(elements) ? null : elements.get(0);
     }
 
-    /** region get elements from document by two anchors
+    /**
+     * region get elements from document by two anchors
      */
     protected Elements getElementsWithTwoAnchors(Document document, String parentAnchorElementTagName, String parentAnchorElementOwnText,
                                                  String anchorElementTagName, String anchorElementOwnText,
@@ -875,7 +1021,7 @@ class DomCore
     /**
      * region get elements from document
      */
-    protected Elements getElements(Document document, ElementInfo elementInfo)
+    public Elements getElements(Document document, ElementInfo elementInfo)
     {
         Elements elements = new Elements();
 
@@ -898,19 +1044,19 @@ class DomCore
         }
     }
 
-    protected Elements getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern, Condition condition)
+    public Elements getElementsByTagNameMatchingOwnText(Document document, String tagName, String pattern, Condition condition)
     {
         Elements elements = getElementsByTagName(document, tagName);
         return getElementsMatchingOwnText(elements, pattern, condition);
     }
 
-    protected Elements getElementsMatchingOwnText(Document document, String pattern, Condition condition)
+    public Elements getElementsMatchingOwnText(Document document, String pattern, Condition condition)
     {
         Elements elements = document == null ? new Elements() : document.getAllElements();
         return getElementsMatchingOwnText(elements, pattern, condition);
     }
 
-    protected Elements getElementsByTagName(Document document, String tagName)
+    public Elements getElementsByTagName(Document document, String tagName)
     {
         Elements result = new Elements();
 
@@ -922,8 +1068,11 @@ class DomCore
         return result;
     }
 
-    protected TreeElements getTreeElements(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, SearchOption searchOption)
-        throws AmbiguousAnchorElementsException
+    /**
+     * region private
+     */
+    private TreeElements getTreeElements(Elements anchorElements, Elements searchElements, SearchMethod searchMethod, SearchOption searchOption)
+            throws AmbiguousAnchorElementsException
     {
         TreeElements result = new TreeElements();
 
@@ -958,9 +1107,6 @@ class DomCore
         return result;
     }
 
-    /**
-     * region private
-     */
     private Elements getActiveAnchorElements(Elements anchorElements, ElementInfo anchorElementInfo)
         throws AnchorIndexIfMultipleFoundOutOfBoundException
     {
@@ -997,36 +1143,6 @@ class DomCore
                 {
                     result.add(item);
                 }
-            }
-        }
-
-        return result;
-    }
-
-    private TreeElements getBestMatchedTreeElements(TreeElements treeElements)
-    {
-        TreeElements result = new TreeElements();
-
-        if(Util.hasItem(treeElements))
-        {
-            TreeElements treeElementsNotSharingAnchor = treeElements.getTreeElementsNotSharingTreeAnchor();
-
-            if(Util.hasItem(treeElementsNotSharingAnchor))
-            {
-                int treeElementsNotSharingAnchorCount = treeElementsNotSharingAnchor.size();
-
-                if(treeElementsNotSharingAnchorCount == 1)
-                {
-                    result.addAll(treeElementsNotSharingAnchor);
-                }
-                else
-                {
-                    result.addAll(treeElementsNotSharingAnchor.getTreeElementsHavingShortestDistanceToOwnAnchors());
-                }
-            }
-            else
-            {
-                result.addAll(treeElements.getTreeElementsHavingShortestDistanceToOwnAnchors());
             }
         }
 
@@ -1138,6 +1254,36 @@ class DomCore
         return null;
     }
 
+    private TreeElements getBestMatchedTreeElements(TreeElements treeElements)
+    {
+        TreeElements result = new TreeElements();
+
+        if(Util.hasItem(treeElements))
+        {
+            TreeElements treeElementsNotSharingAnchor = treeElements.getTreeElementsNotSharingTreeAnchor();
+
+            if(Util.hasItem(treeElementsNotSharingAnchor))
+            {
+                int treeElementsNotSharingAnchorCount = treeElementsNotSharingAnchor.size();
+
+                if(treeElementsNotSharingAnchorCount == 1)
+                {
+                    result.addAll(treeElementsNotSharingAnchor);
+                }
+                else
+                {
+                    result.addAll(treeElementsNotSharingAnchor.getTreeElementsHavingShortestDistanceToOwnAnchors());
+                }
+            }
+            else
+            {
+                result.addAll(treeElements.getTreeElementsHavingShortestDistanceToOwnAnchors());
+            }
+        }
+
+        return result;
+    }
+
     private Elements treeElementsToElements(TreeElements treeElements)
     {
         Elements elements = new Elements();
@@ -1148,6 +1294,30 @@ class DomCore
         }
 
         return elements;
+    }
+
+    private List<List<String>> treeElementsToXpathsGroupingByAnchor(TreeElements treeElements)
+    {
+        List<List<String>> result = new ArrayList<>();
+
+        if(Util.hasItem(treeElements))
+        {
+            List<TreeElements> treeElementsByAnchor = treeElements.groupTreeElementsByAnchor();
+
+            if(Util.hasItem(treeElementsByAnchor))
+            {
+                treeElementsByAnchor.forEach(x -> {
+                    if(Util.hasItem(x))
+                    {
+                        List<String> xpaths = new ArrayList<>();
+                        x.forEach(y -> xpaths.add(y.activeXpath));
+                        result.add(xpaths);
+                    }
+                });
+            }
+        }
+
+        return result;
     }
 
     private List<String> treeElementsToXpaths(TreeElements treeElements)

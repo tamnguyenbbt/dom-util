@@ -2,7 +2,6 @@ package com.github.tamnguyenbbt;
 
 import com.github.tamnguyenbbt.dom.DomUtil;
 import com.github.tamnguyenbbt.dom.ElementInfo;
-import com.github.tamnguyenbbt.dom.Tree;
 import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Document;
@@ -82,7 +81,7 @@ public class DomUtilTest
     public void getXPaths() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -99,7 +98,7 @@ public class DomUtilTest
     public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -139,7 +138,7 @@ public class DomUtilTest
     public void getXPath() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -227,16 +226,5 @@ public class DomUtilTest
 
         //Assert
         Assert.assertNull(firstName);
-    }
-
-    @Test
-    public void simpleTestMethodCodeGen() throws IOException
-    {
-        //Arrange
-        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
-        Document document = domUtil.htmlFileToDocument(resourcePath);
-
-        //Act
-        String method = domUtil.generateMethod(document);
     }
 }
