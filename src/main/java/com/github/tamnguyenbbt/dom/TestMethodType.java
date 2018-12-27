@@ -5,8 +5,9 @@ public enum TestMethodType
     get,
     click,
     set,
-    select,
+    selectByVisibleText,
+    selectByValue,
+    selectByIndex,
     check,
-    uncheck,
-    is
+    uncheck
 }

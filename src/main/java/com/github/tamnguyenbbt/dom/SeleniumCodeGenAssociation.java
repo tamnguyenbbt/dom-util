@@ -1,25 +1,39 @@
 package com.github.tamnguyenbbt.dom;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SeleniumCodeGenAssociation implements ICodeGenAssociation
 {
     @Override
     public AssociationRules generateRules()
     {
         AssociationRules associationRules = new AssociationRules();
-        associationRules.add(inputTagSetRule());
-        associationRules.add(inputTagGetTextRule());
+        associationRules.add(inputTagTypeTextSetRule());
+        associationRules.add(inputTagTypeTextGetTextRule());
+        associationRules.add(clickableTagsClickRule());
+        associationRules.add(selectTagSelectByVisibleTextRule());
+        associationRules.add(selectTagSelectByValueRule());
+        associationRules.add(selectTagSelectByIndexRule());
+        associationRules.add(inputTagTypeCheckBoxCheck());
+        associationRules.add(inputTagTypeCheckBoxUncheck());
+        associationRules.add(inputTagTypeRadioButtonCheck());
         return associationRules;
+    }
+
+    @Override
+    public String generatePackageStatement()
+    {
+        return "package com.github.tamnguyenbbt.dom;\n\n";
     }
 
     @Override
     public String generateImportStatements()
     {
-        StringBuilder classImportStatementBuilder = new StringBuilder();
-        classImportStatementBuilder.append("import org.openqa.selenium.By;\n" +
+        return "import org.openqa.selenium.By;\n" +
                 "import org.openqa.selenium.WebDriver;\n" +
-                "import org.openqa.selenium.WebElement;");
-
-        return classImportStatementBuilder.toString();
+                "import org.openqa.selenium.WebElement;\n" +
+                "import org.openqa.selenium.support.ui.*;";
     }
 
     @Override
@@ -37,17 +51,86 @@ public class SeleniumCodeGenAssociation implements ICodeGenAssociation
         return classVariablesBuilder.toString();
     }
 
-    private AssociationRule inputTagSetRule()
+    private AssociationRule inputTagTypeTextSetRule()
     {
         String body = "driver.findElement(By.xpath(\"%s\")).sendKeys(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
-        return new AssociationRule(HtmlTag.input, TestMethodType.set, testMethodInfo);
+        return new AssociationRule(HtmlTag.input, "text", TestMethodType.set, testMethodInfo);
     }
 
-    private AssociationRule inputTagGetTextRule()
+    private AssociationRule inputTagTypeTextGetTextRule()
     {
         String body = "return driver.findElement(By.xpath(\"%s\")).getText(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("String", false, body);
-        return new AssociationRule(HtmlTag.input, TestMethodType.get, testMethodInfo);
+        return new AssociationRule(HtmlTag.input, "text", TestMethodType.get, testMethodInfo);
+    }
+
+    private AssociationRule clickableTagsClickRule()
+    {
+        String body = "return driver.findElement(By.xpath(\"%s\")).click(%s);";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", false, body);
+        List<HtmlTag> clickableTags = new ArrayList<>();
+        clickableTags.add(HtmlTag.a);
+        clickableTags.add(HtmlTag.button);
+        clickableTags.add(HtmlTag.img);
+        clickableTags.add(HtmlTag.label);
+        clickableTags.add(HtmlTag.link);
+        clickableTags.add(HtmlTag.span);
+        clickableTags.add(HtmlTag.div);
+        return new AssociationRule(clickableTags, TestMethodType.click, testMethodInfo);
+    }
+
+    private AssociationRule selectTagSelectByVisibleTextRule()
+    {
+        String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByVisibleText(%s);";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
+        return new AssociationRule(HtmlTag.select, TestMethodType.selectByVisibleText, testMethodInfo);
+    }
+
+    private AssociationRule selectTagSelectByValueRule()
+    {
+        String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByValue(%s);";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
+        return new AssociationRule(HtmlTag.select, TestMethodType.selectByValue, testMethodInfo);
+    }
+
+    private AssociationRule selectTagSelectByIndexRule()
+    {
+        String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByIndex(%s);";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
+        return new AssociationRule(HtmlTag.select, TestMethodType.selectByIndex, testMethodInfo);
+    }
+
+    private AssociationRule inputTagTypeCheckBoxCheck()
+    {
+        String body = "WebElement checkBox = driver.findElement(By.xpath(\"%s\"));\n\n" +
+                "if (!checkBox.isSelected())\n" +
+                "{\n" +
+                "\tcheckBox.click(%s);\n" +
+                "}";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", false, body);
+        return new AssociationRule(HtmlTag.input, "checkbox", TestMethodType.check, testMethodInfo);
+    }
+
+    private AssociationRule inputTagTypeCheckBoxUncheck()
+    {
+        String body = "WebElement checkBox = driver.findElement(By.xpath(\"%s\"));\n\n" +
+                "if (checkBox.isSelected())\n" +
+                "{\n" +
+                "\tcheckBox.click(%s);\n" +
+                "}";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", false, body);
+        return new AssociationRule(HtmlTag.input, "checkbox", TestMethodType.uncheck, testMethodInfo);
+    }
+
+    private AssociationRule inputTagTypeRadioButtonCheck()
+    {
+        String body = "WebElement radioButton = driver.findElement(By.xpath(\"%s\"));\n\n" +
+                "if (!radioButton.isSelected())\n" +
+                "{\n" +
+                "\tradioButton.click(%s);\n" +
+                "}";
+        TestMethodInfo testMethodInfo = new TestMethodInfo("void", false, body);
+        return new AssociationRule(HtmlTag.input, "radio", TestMethodType.check, testMethodInfo);
     }
 }

@@ -1,7 +1,7 @@
 package com.github.tamnguyenbbt.dom;
 
-import org.apache.commons.lang.WordUtils;
 import org.jsoup.nodes.Document;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,14 +24,26 @@ public class CodeGenerator
         }
     }
 
+    public String getCodeGenClassName()
+    {
+        String className = Util.removeSpecialCharacters(document.title());
+        className = Util.removeLineSeparators(className).trim();
+        return Util.toTitleCase(className).replace(" ", "");
+    }
+
+    public void generatePageObjectModelClass(String path) throws IOException
+    {
+        String content = generatePageObjectModelClass();
+        Util.saveToFile(content, path);
+    }
+
     public String generatePageObjectModelClass()
     {
         if(document != null)
         {
-            String className = Util.removeLineSeparators(document.title()).trim();
-            className = WordUtils.capitalizeFully(className).replace(" ", "");
+            String className = getCodeGenClassName();
             StringBuilder pageObjectModelBuilder = new StringBuilder();
-            pageObjectModelBuilder.append("package com.github.tamnguyenbbt.dom;\n\n");
+            pageObjectModelBuilder.append(codeGenAssociation.generatePackageStatement());
             String importStatements = codeGenAssociation.generateImportStatements();
 
             if(importStatements != null)
@@ -135,11 +147,50 @@ public class CodeGenerator
         {
             for (TreeElement item : tree)
             {
-                for(AssociationRule associationRule : associationRules)
+                methods.addAll(generateTreeElementMethods(item));
+            }
+        }
+
+        return methods;
+    }
+
+    private List<MapEntry<String, String>> generateTreeElementMethods(TreeElement treeElement)
+    {
+        List<MapEntry<String, String>> methods = new ArrayList<>();
+
+        if(treeElement != null && Util.hasItem(associationRules))
+        {
+            for(AssociationRule associationRule : associationRules)
+            {
+                methods.addAll(generateTreeElementMethodsPerRule(treeElement, associationRule));
+            }
+        }
+
+        return methods;
+    }
+
+    private List<MapEntry<String, String>> generateTreeElementMethodsPerRule(TreeElement treeElement, AssociationRule rule)
+    {
+        List<MapEntry<String, String>> methods = new ArrayList<>();
+
+        if(treeElement != null && rule != null && Util.hasItem(rule.tags))
+        {
+            for(HtmlTag tag : rule.tags)
+            {
+                if(Util.hasItem(rule.typeAttributeValues))
                 {
-                    if(item.element.tagName().equalsIgnoreCase(associationRule.tag.toString()))
+                    if(treeElement.element.tagName().equalsIgnoreCase(tag.toString()) &&
+                            treeElement.element.hasAttr("type") &&
+                            rule.typeAttributeValues.contains(treeElement.element.attr("type")))
                     {
-                        methods.add(generateMethod(item, associationRule));
+                        methods.add(generateMethod(treeElement, rule));
+                    }
+                }
+                else
+                {
+                    if(treeElement.element.tagName().equalsIgnoreCase(tag.toString()))
+                    {
+                        methods.add(generateMethod(treeElement, rule));
                     }
                 }
             }
@@ -154,7 +205,11 @@ public class CodeGenerator
         {
             String xpath = element.uniqueXpaths.get(0);
             TreeElement anchor = element.anchorElementsFormingXpaths.get(0);
-            String anchorText = WordUtils.capitalizeFully(Util.removeLineSeparators(anchor.element.ownText()).trim()).replace(" ", "");
+            String anchorText = anchor.element.ownText();
+            anchorText = Util.removeSpecialCharacters(anchorText);
+            anchorText = Util.removeLineSeparators(anchorText).trim();
+            anchorText = Util.toTitleCase(anchorText);
+            anchorText = anchorText.replace(" ", "");
             StringBuilder methodBuilder = new StringBuilder();
             String methodName = associationRule.methodType + anchorText;
             String paramName  = associationRule.testMethodInfo.hasParam ? Character.toLowerCase(anchorText.charAt(0)) + anchorText.substring(1) : "";
@@ -175,7 +230,7 @@ public class CodeGenerator
             }
             else
             {
-                methodBuilder.append(String.format("\t\t%s", body));
+                methodBuilder.append(String.format("\t%s", body));
             }
 
             methodBuilder.append("\n}");
