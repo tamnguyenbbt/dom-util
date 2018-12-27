@@ -1,5 +1,7 @@
 ## dom-util
-Search and build jsoup elements, relative xpath queries, and Selenium web elements automatically for web service and Selenium-based Web UI testing in an easy way. Make Selenium-based UI testing much easier and more fun.
+Search and build jsoup elements, relative xpath queries, and Selenium web elements automatically for web service and Selenium-based Web UI testing in an easy way.
+Make Selenium-based UI testing much easier and more fun.
+Page Object Model code generator.
 
 As an automation tester/quality engineer, you may find that the most boring thing in automating Web UI tests using Selenium is to construct xpaths, css selectors, or the likes.
 
@@ -51,12 +53,24 @@ This utility is to help reduce the effort for this process.
         
         domUtil.getWebElementWithTwoAnchorsBestEffort(driver, "div","your first time using our service?", "span", "Yes",  "input").click();
 
+        //Code generation example for Google Sign-up page.
+        //Users of this dom-util need to implement ICodeGenAssociation interface to inject their Selenium wrappers
+        //into the code generation function of the dom-util. SeleniumCodeGenAssociation is the default implementation.
+        Document document = domUtil.getActiveDocument(driver);
+        ICodeGenAssociation codeGenAssociation = new SeleniumCodeGenAssociation();
+        CodeGenerator codeGenerator = new CodeGenerator(document, codeGenAssociation);
+        String className = codeGenerator.getCodeGenClassName();
+        String folder = CodeGeneratorTest.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String fileName = folder + File.separator + className + "Generated.java";
+        codeGenerator.generatePageObjectModelClass(fileName);
+
 * See: https://github.com/tamnguyenbbt/dom-util/blob/master/src/test/java/com/github/tamnguyenbbt/DomUtilTest.java
         
 ## License
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
+* Version **1.1.0** released on 12/28/2018 - release Page Object Model code generation feature
 * Version **1.0.9** released on 12/24/2018
 * Version **1.0.8** released on 12/19/2018
 * Version **1.0.7** released on 12/17/2018
@@ -66,7 +80,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 * Version **1.0.3** released on 12/06/2018
 * Version **1.0.2** released on 12/05/2018
 * Version **1.0.1** released on 12/04/2018
-* Version **1.0.0** released on 12/02/2018
+* Version **1.0.0** released on 12/02/2018 - first release
 
 ## Maven Repository
 
@@ -74,7 +88,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.0.9</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 

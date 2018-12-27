@@ -51,21 +51,21 @@ public class SeleniumCodeGenAssociation implements ICodeGenAssociation
         return classVariablesBuilder.toString();
     }
 
-    private AssociationRule inputTagTypeTextSetRule()
+    public AssociationRule inputTagTypeTextSetRule()
     {
         String body = "driver.findElement(By.xpath(\"%s\")).sendKeys(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
         return new AssociationRule(HtmlTag.input, "text", TestMethodType.set, testMethodInfo);
     }
 
-    private AssociationRule inputTagTypeTextGetTextRule()
+    public AssociationRule inputTagTypeTextGetTextRule()
     {
         String body = "return driver.findElement(By.xpath(\"%s\")).getText(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("String", false, body);
         return new AssociationRule(HtmlTag.input, "text", TestMethodType.get, testMethodInfo);
     }
 
-    private AssociationRule clickableTagsClickRule()
+    public AssociationRule clickableTagsClickRule()
     {
         String body = "return driver.findElement(By.xpath(\"%s\")).click(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", false, body);
@@ -80,28 +80,28 @@ public class SeleniumCodeGenAssociation implements ICodeGenAssociation
         return new AssociationRule(clickableTags, TestMethodType.click, testMethodInfo);
     }
 
-    private AssociationRule selectTagSelectByVisibleTextRule()
+    public AssociationRule selectTagSelectByVisibleTextRule()
     {
         String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByVisibleText(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
         return new AssociationRule(HtmlTag.select, TestMethodType.selectByVisibleText, testMethodInfo);
     }
 
-    private AssociationRule selectTagSelectByValueRule()
+    public AssociationRule selectTagSelectByValueRule()
     {
         String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByValue(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
         return new AssociationRule(HtmlTag.select, TestMethodType.selectByValue, testMethodInfo);
     }
 
-    private AssociationRule selectTagSelectByIndexRule()
+    public AssociationRule selectTagSelectByIndexRule()
     {
         String body = "new Select(driver.findElement(By.xpath(\"%s\"))).selectByIndex(%s);";
         TestMethodInfo testMethodInfo = new TestMethodInfo("void", true, body);
         return new AssociationRule(HtmlTag.select, TestMethodType.selectByIndex, testMethodInfo);
     }
 
-    private AssociationRule inputTagTypeCheckBoxCheck()
+    public AssociationRule inputTagTypeCheckBoxCheck()
     {
         String body = "WebElement checkBox = driver.findElement(By.xpath(\"%s\"));\n\n" +
                 "if (!checkBox.isSelected())\n" +
@@ -112,7 +112,7 @@ public class SeleniumCodeGenAssociation implements ICodeGenAssociation
         return new AssociationRule(HtmlTag.input, "checkbox", TestMethodType.check, testMethodInfo);
     }
 
-    private AssociationRule inputTagTypeCheckBoxUncheck()
+    public AssociationRule inputTagTypeCheckBoxUncheck()
     {
         String body = "WebElement checkBox = driver.findElement(By.xpath(\"%s\"));\n\n" +
                 "if (checkBox.isSelected())\n" +
@@ -123,7 +123,7 @@ public class SeleniumCodeGenAssociation implements ICodeGenAssociation
         return new AssociationRule(HtmlTag.input, "checkbox", TestMethodType.uncheck, testMethodInfo);
     }
 
-    private AssociationRule inputTagTypeRadioButtonCheck()
+    public AssociationRule inputTagTypeRadioButtonCheck()
     {
         String body = "WebElement radioButton = driver.findElement(By.xpath(\"%s\"));\n\n" +
                 "if (!radioButton.isSelected())\n" +
