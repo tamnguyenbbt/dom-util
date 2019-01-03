@@ -53,21 +53,6 @@ class DomCore
         config = new DomUtilConfig();
     }
 
-//    public String generateMethod(Document document)
-//    {
-//        CodeGenerator codeGenerator = new CodeGenerator(document);
-//
-//        for (TreeElement element : codeGenerator.getTree())
-//        {
-//            if(element.element.tagName().equals("input"))
-//            {
-//                return codeGenerator.generateSetMethodForInputTag(element);
-//            }
-//        }
-//
-//        return null;
-//    }
-
     public Document getActiveDocument(WebDriver driver)
     {
         if(driver == null)
