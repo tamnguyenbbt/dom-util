@@ -1,17 +1,14 @@
 package com.github.tamnguyenbbt;
 
 import com.github.tamnguyenbbt.dom.DomUtil;
-import com.github.tamnguyenbbt.dom.DomUtilConfig;
 import com.github.tamnguyenbbt.dom.ElementInfo;
 import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
