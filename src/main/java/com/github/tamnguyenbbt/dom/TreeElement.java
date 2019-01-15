@@ -191,6 +191,29 @@ final class TreeElement
         return null;
     }
 
+    protected boolean matchAny(List<Attribute> attributes)
+    {
+        if(Util.hasNoItem(attributes))
+        {
+            return false;
+        }
+
+        for (Attribute item : attributes)
+        {
+            if(item != null)
+            {
+                List<Attribute> elementAttributes = getAttributes(item.getKey(), GetAttributeMethod.ByName);
+
+                if(Util.hasItem(elementAttributes) && elementAttributes.get(0).getValue().equalsIgnoreCase(item.getValue()))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private Attribute getAttributeLinkedToAnchorAttribute(Attribute anchorAttribute, String attributeNamePattern)
     {
         if(anchorAttribute != null)
