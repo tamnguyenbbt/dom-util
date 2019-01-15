@@ -70,6 +70,7 @@ This utility is to help reduce the effort for this process.
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
+* Version **1.1.1** released on 01/15/2019 - add feature to filter out tags by attributes from Document
 * Version **1.1.0** released on 12/28/2018 - release Page Object Model code generation feature
 * Version **1.0.9** released on 12/24/2018
 * Version **1.0.8** released on 12/19/2018
@@ -88,11 +89,11 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```
 
-https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.0.9/jar
+https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.1.1/jar
 
 ## Future Development Plan
 - Page Object Model class generator (code generator) for test scripts to consume
