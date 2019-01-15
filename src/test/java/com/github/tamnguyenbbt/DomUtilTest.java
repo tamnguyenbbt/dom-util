@@ -1,19 +1,24 @@
 package com.github.tamnguyenbbt;
 
 import com.github.tamnguyenbbt.dom.DomUtil;
+import com.github.tamnguyenbbt.dom.DomUtilConfig;
 import com.github.tamnguyenbbt.dom.ElementInfo;
 import com.github.tamnguyenbbt.exception.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,6 +97,23 @@ public class DomUtilTest
         //Assert
         Assert.assertEquals(expectedXPath, xpath1);
         Assert.assertEquals(expectedXPath, xpath2);
+    }
+
+    @Test
+    public void removeTagsFromDocument() throws IOException, AmbiguousAnchorElementsException
+    {
+        //Arrange
+        String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
+        Document document = domUtil.htmlFileToDocument(resourcePath);
+        List<Attribute> attributes = new ArrayList<>();
+        attributes.add(new Attribute("type", "hidden"));
+        document = domUtil.removeTagsByAnyMatchedAttribute(document, attributes);
+
+        //Act
+        List<String> xpaths = domUtil.getXpaths(document, "button", "Hidden", "button");
+
+        //Assert
+        Assert.assertEquals(0, xpaths.size());
     }
 
     @Test
