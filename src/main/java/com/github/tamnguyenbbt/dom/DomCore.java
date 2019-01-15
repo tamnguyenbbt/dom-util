@@ -29,22 +29,19 @@ class DomCore
 
     protected DomCore(DomUtilConfig config)
     {
-        if(config == null)
+        this.config = config == null ? new DomUtilConfig() : config;
+
+        if(Util.hasNoItem(this.config.xpathBuildOptions))
         {
-            this.config = new DomUtilConfig();
+            this.config.xpathBuildOptions = new ArrayList<>();
+            this.config.xpathBuildOptions.add(XpathBuildOption.AttachId);
+            this.config.xpathBuildOptions.add(XpathBuildOption.AttachName);
+            this.config.xpathBuildOptions.add(XpathBuildOption.IncludeTagIndex);
         }
 
-        if(Util.hasNoItem(config.xpathBuildOptions))
+        if(this.config.webDriverTimeoutInMilliseconds <= 0)
         {
-            config.xpathBuildOptions = new ArrayList<>();
-            config.xpathBuildOptions.add(XpathBuildOption.AttachId);
-            config.xpathBuildOptions.add(XpathBuildOption.AttachName);
-            config.xpathBuildOptions.add(XpathBuildOption.IncludeTagIndex);
-        }
-
-        if(config.webDriverTimeoutInMilliseconds <= 0)
-        {
-            config.webDriverTimeoutInMilliseconds = 2000;
+            this.config.webDriverTimeoutInMilliseconds = 2000;
         }
     }
 
@@ -68,6 +65,20 @@ class DomCore
     public Document getDocument(String htmlContent)
     {
         return Jsoup.parse(htmlContent);
+    }
+
+    public Document removeTagsByAnyMatchedAttribute(Document document, List<Attribute> matchedAttributes)
+    {
+        Elements allElements = document.getAllElements();
+
+        allElements.forEach(x -> {
+           if(new TreeElement(x).matchAny(matchedAttributes))
+           {
+               x.remove();
+           }
+        });
+
+        return document;
     }
 
     public Document htmlFileToDocument(String path) throws IOException
