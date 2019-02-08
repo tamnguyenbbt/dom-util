@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -120,6 +119,32 @@ class Util
                 fileChannel.close();
             }
         }
+    }
+
+    protected static Map<String, Integer> getDistinct(List<String> input)
+    {
+        Map<String, Integer> result = new HashMap<>();
+
+        if(input != null && !input.isEmpty())
+        {
+            List<String> distinct = new ArrayList(new HashSet(input));
+
+            distinct.forEach(x -> {
+                int index = 0;
+
+                for (String item : input)
+                {
+                    if(item.equals(x))
+                    {
+                        index++;
+                    }
+                }
+
+                result.put(x, index);
+            });
+        }
+
+        return result;
     }
 
     private static FileLock getFileLock(FileChannel fileChannel, int retries) throws IOException
