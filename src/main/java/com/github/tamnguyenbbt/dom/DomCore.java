@@ -58,13 +58,51 @@ class DomCore
         }
 
         WebElement htmlElement = driver.findElement(By.xpath("//html"));
-        String htmlContent = htmlElement.getAttribute("innerHTML");
-        return getDocument(htmlContent);
+
+        if(htmlElement != null)
+        {
+            String htmlContent = htmlElement.getAttribute("innerHTML");
+            return getDocument(htmlContent);
+        }
+
+        return null;
     }
 
     public Document getDocument(String htmlContent)
     {
         return Jsoup.parse(htmlContent);
+    }
+
+    public List<String> indexXpaths(List<String> xpaths)
+    {
+        List<String> result = new ArrayList<>();
+
+        if(xpaths != null && !xpaths.isEmpty())
+        {
+            Map<String, Integer> distinctXpaths = Util.getDistinct(xpaths);
+            Iterator it = distinctXpaths.entrySet().iterator();
+
+            while (it.hasNext())
+            {
+                Map.Entry pair = (Map.Entry)it.next();
+                String xpath = pair.getKey().toString();
+                int count = (int)pair.getValue();
+
+                if(count > 1)
+                {
+                    for (int i = 1; i <= count; i++)
+                    {
+                        result.add(String.format("(%s)[%s]", xpath, i));
+                    }
+                }
+                else
+                {
+                    result.add(xpath);
+                }
+            }
+        }
+
+        return result;
     }
 
     public Document removeTagsByAnyMatchedAttribute(Document document, List<Attribute> matchedAttributes)
