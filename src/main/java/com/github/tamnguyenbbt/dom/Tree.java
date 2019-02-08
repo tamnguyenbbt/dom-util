@@ -236,7 +236,7 @@ public class Tree extends ArrayList<TreeElement>
                 }
                 else if(Util.hasItem(youngerSiblings))
                 {
-                    xpathBuilder.append(String.format("[%s]", 1));
+                    xpathBuilder.append("[1]");
                 }
             }
 

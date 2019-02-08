@@ -8,7 +8,7 @@ final class GetElementRecordParam
     protected Element searchElement;
     protected int searchElementIndex;
 
-    public GetElementRecordParam(Element anchorElement, Element searchElement, int searchElementIndex)
+    protected GetElementRecordParam(Element anchorElement, Element searchElement, int searchElementIndex)
     {
         this.anchorElement = anchorElement;
         this.searchElement = searchElement;
