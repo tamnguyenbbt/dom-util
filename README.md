@@ -1,11 +1,9 @@
 ## dom-util
-Search and build jsoup elements, relative xpath queries, and Selenium web elements automatically for web service and Selenium-based Web UI testing in an easy way.
-Make Selenium-based UI testing much easier and more fun.
-Page Object Model code generator.
-
-As an automation tester/quality engineer, you may find that the most boring thing in automating Web UI tests using Selenium is to construct xpaths, css selectors, or the likes.
-
-This utility is to help reduce the effort for this process.
+- Search DOM and build XPATH queries, Selenium web elements, or jsoup elements based on label texts automatically.
+- Page Object Model code generator.
+- For those who need to find HTML locators in DOM using CSS Selector or XPATH, this is a better and time-saving way to go, saying goodbye to manually constructing XPATH and CSS locators for each HTML web element in DOM.
+- This helps much in the area of web service and Selenium-based Web UI testing, making Selenium-based UI testing much easier, more fun and more importantly saving development and maintenance time, effort and cost.
+- Unlike other free and commercial DOM capture or record and playback tools in the market which capture XPATH locators using everything including HTML attributes (can be auto-generated and dynamic), which is fragile and most of the time, unusable. This dom-util gives you the xpath locators which are based on texts and relative DOM structure without using html attributes. So what you see from a web page is what you get.
 
 ## How to use:
  - Locate anchor web element on a web page under test such as a label closest to the web element to search
@@ -45,6 +43,7 @@ This utility is to help reduce the effort for this process.
         //returns: "//div[div[contains(text(),'Username')]]/input[@id='1111'][@name='User Name']";
         
         String lastName = domUtil.getXpathBestEffort(document, "div", "Last name", "input");
+        lastName = domUtil.getXpathBestEffort(document, "Last name", "input");
         String middleName = domUtil.getXpath(document, "Middle Name", "div span input");
         
         Element doB = domUtil.getElement(document, "div", "Date of Birth", "input");
