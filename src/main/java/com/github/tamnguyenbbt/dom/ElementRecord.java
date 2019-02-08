@@ -30,7 +30,7 @@ final class ElementRecord
 
     protected TreeElement getLeaf()
     {
-        return containingTree.getLeaf();
+        return containingTree != null ? containingTree.getLeaf() : null;
     }
 
     protected TreeElement getRoot()
