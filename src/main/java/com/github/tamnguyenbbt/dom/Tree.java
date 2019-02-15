@@ -101,8 +101,8 @@ public class Tree extends ArrayList<TreeElement>
 
             if(treeElement.asAnchorCandidate)
             {
-                treeElement.uniqueXpaths.add(String.format("//%s[text()='%s']", element.tagName(), element.ownText()));
-                treeElement.leastRefactoredXpaths.add(String.format("//%s[contains(text(),'%s')]", element.tagName(), Util.removeLineSeparators(element.ownText()).trim()));
+                treeElement.uniqueXpaths.add(String.format("//%s[text()=\"%s\"]", element.tagName(), element.ownText()));
+                treeElement.leastRefactoredXpaths.add(String.format("//%s[contains(text(),\"%s\")]", element.tagName(), Util.removeLineSeparators(element.ownText()).trim()));
                 treeElement.anchorElementsFormingXpaths.add(treeElement);
             }
             else
@@ -169,29 +169,29 @@ public class Tree extends ArrayList<TreeElement>
         {
             if (xpathPartFromRootElementToAnchorElement == "" && xpathPartFromRootElementToFoundElement == "")
             {
-                uniqueXpath = String.format("//%s[text()='%s']", rootElementTagName, anchorElementOwnText);
-                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim());
+                uniqueXpath = String.format("//%s[text()=\"%s\"]", rootElementTagName, anchorElementOwnText);
+                leastRefactoredXpath = String.format("//%s[contains(text(),\"%s\")]", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim());
             }
             else if (xpathPartFromRootElementToAnchorElement == "")
             {
-                uniqueXpath = String.format("//%s[text()='%s']/%s", rootElementTagName, anchorElementOwnText,
+                uniqueXpath = String.format("//%s[text()=\"%s\"]/%s", rootElementTagName, anchorElementOwnText,
                                             xpathPartFromRootElementToFoundElement);
-                leastRefactoredXpath = String.format("//%s[contains(text(),'%s')]/%s", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim(),
+                leastRefactoredXpath = String.format("//%s[contains(text(),\"%s\")]/%s", rootElementTagName, Util.removeLineSeparators(anchorElementOwnText).trim(),
                                                      xpathPartFromRootElementToFoundElement);
             }
             else if (xpathPartFromRootElementToFoundElement == "")
             {
-                uniqueXpath = String.format("//%s[%s[text()='%s']]",
+                uniqueXpath = String.format("//%s[%s[text()=\"%s\"]]",
                                             rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText);
-                leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]",
+                leastRefactoredXpath = String.format("//%s[%s[contains(text(),\"%s\")]]",
                                                      rootElementTagName, xpathPartFromRootElementToAnchorElement, Util.removeLineSeparators(anchorElementOwnText).trim());
             }
             else
             {
-                uniqueXpath =  String.format("//%s[%s[text()='%s']]/%s",
+                uniqueXpath =  String.format("//%s[%s[text()=\"%s\"]]/%s",
                                              rootElementTagName, xpathPartFromRootElementToAnchorElement, anchorElementOwnText,
                                              xpathPartFromRootElementToFoundElement);
-                leastRefactoredXpath = String.format("//%s[%s[contains(text(),'%s')]]/%s",
+                leastRefactoredXpath = String.format("//%s[%s[contains(text(),\"%s\")]]/%s",
                                                      rootElementTagName, xpathPartFromRootElementToAnchorElement, Util.removeLineSeparators(anchorElementOwnText).trim(),
                                                      xpathPartFromRootElementToFoundElement);
             }

@@ -151,7 +151,7 @@ final class TreeElement
             {
                 for (Attribute item : attributes)
                 {
-                    xpathWithAttributes = String.format("%s[@%s='%s']", xpathWithAttributes, item.getKey(), item.getValue());
+                    xpathWithAttributes = String.format("%s[@%s=\"%s\"]", xpathWithAttributes, item.getKey(), item.getValue());
                 }
             }
         }

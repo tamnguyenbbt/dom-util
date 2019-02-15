@@ -83,7 +83,7 @@ public class DomUtilTest
     public void getXPaths() throws IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),\"Username\")]]/input[@id=\"username\"][@jsname=\"YPqjbf\"][@name=\"Username\"]";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -117,7 +117,7 @@ public class DomUtilTest
     public void getXPaths_with_AnchorElementInfo() throws AnchorIndexIfMultipleFoundOutOfBoundException, IOException, AmbiguousAnchorElementsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),\"Username\")]]/input[@id=\"username\"][@jsname=\"YPqjbf\"][@name=\"Username\"]";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 
@@ -157,7 +157,7 @@ public class DomUtilTest
     public void getXPath() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException
     {
         //Arrange
-        String expectedXPath = "//div[div[contains(text(),'Username')]]/input[@id='username'][@jsname='YPqjbf'][@name='Username']";
+        String expectedXPath = "//div[div[contains(text(),\"Username\")]]/input[@id=\"username\"][@jsname=\"YPqjbf\"][@name=\"Username\"]";
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         driver.get(url);
@@ -175,7 +175,7 @@ public class DomUtilTest
     public void getXPath_self() throws AmbiguousAnchorElementsException, AmbiguousFoundXpathsException, IOException
     {
         //Arrange
-        String expectedXPath = "//button[contains(text(),'Next')]";
+        String expectedXPath = "//button[contains(text(),\"Next\")]";
         String resourcePath = getClass().getClassLoader().getResource("google-signup.html").getFile();
         Document document = domUtil.htmlFileToDocument(resourcePath);
 

@@ -69,6 +69,7 @@
 Dom-util is licensed under **Apache Software License, Version 2.0**.
 
 ## Versions
+* Version **1.1.3** released on 02/15/2019
 * Version **1.1.2** released on 02/08/2019 - add indexXpaths() to DomCore
 * Version **1.1.1** released on 01/15/2019 - add feature to filter out tags by attributes from Document
 * Version **1.1.0** released on 12/28/2018 - release Page Object Model code generation feature
@@ -89,7 +90,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 <dependency>
   <groupId>com.github.tamnguyenbbt</groupId>
   <artifactId>dom-util</artifactId>
-  <version>1.1.2</version>
+  <version>1.1.3</version>
 </dependency>
 ```
 
