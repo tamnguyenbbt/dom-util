@@ -94,7 +94,7 @@ Dom-util is licensed under **Apache Software License, Version 2.0**.
 </dependency>
 ```
 
-https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.1.2/jar
+https://search.maven.org/artifact/com.github.tamnguyenbbt/dom-util/1.1.3/jar
 
 ## Future Development Plan
 - Page Object Model class generator (code generator) for test scripts to consume
